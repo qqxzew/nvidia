@@ -109,3 +109,15 @@ Game → UI events: see `src/core/events.js` (`state`, `countdown`, `barrel:lost
 - `window.__game` exposes ctx, `G` (state), `controller`, `cargo`. `renderer.info.render.calls/triangles` for budgets.
 - Keyboard (desktop): arrows/WASD, Enter = start.
 - Always finish with `npm run build` passing.
+
+## Main menu (added)
+- Game states now start at `title` (main menu) → `menu` (level 1 briefing) → `countdown` → `playing` → `won`/`lost`.
+  Debug params `?autostart`, `?s=` and `?view=` skip the main menu.
+- `src/ui/title.js` + `title.css`: paper sheet on the left (story mode: new game / continue, levels, about, prologue),
+  language flag top-left (cs/en/de, persisted, switching reloads the page), settings bar bottom-right.
+  Emits `ui:menu` (open the level 1 briefing). Level screens emit `ui:title` to return.
+- `src/core/progress.js`: story progress in localStorage (`started`, `reached`, best stars/time per level).
+  `main.js` calls `progress.complete(1, …)` on `finish`.
+- Camera in `title`: `cameraRig.titleOrbit` swings around the Světovar complex, shifted right with
+  `setViewOffset`; fog is pushed back and the sun comes from the road side while the menu is open.
+- Strings: `src/ui/i18n.js` has full cs/en/de; the rubber stamp stays Czech in every language.

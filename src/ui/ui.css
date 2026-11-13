@@ -157,6 +157,9 @@ input[type=range]:focus-visible { outline: 2px solid var(--red); outline-offset:
 .card h3 { margin: 0 0 4px; font-size: 18px; }
 .card p { margin: 0; font-size: 16px; line-height: 1.38; color: var(--ink-2); }
 .res-panel .btn { width: 100%; }
+.btn-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.btn-row .btn.alt { width: auto; padding: 8px 16px; font-size: 20px; }
+.menu-panel .to-title { margin-top: 8px; justify-content: center; }
 
 .stamp { position: absolute; top: 12px; right: 24px; width: 108px; height: 108px; color: var(--red);
   transform: rotate(-12deg); opacity: .88; mix-blend-mode: multiply; pointer-events: none; }

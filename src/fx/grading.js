@@ -20,6 +20,11 @@ export function createGrading(renderer, { samples = 0 } = {}) {
       uVignette: { value: 0.38 },
       uGrain: { value: 0.03 },
       uFlash: { value: 0 },
+      uFade: { value: 0 },                          // dip to dark (menu dissolves)
+      uContrast: { value: 1 },
+      uSun: { value: new THREE.Vector3(0.5, 0.5, 0) }, // sun position in uv + glow strength
+      uAspect: { value: 1 },
+      uExposure: { value: 1 },
     },
     vertexShader: /* glsl */ `
       varying vec2 vUv;
@@ -27,14 +32,25 @@ export function createGrading(renderer, { samples = 0 } = {}) {
     `,
     fragmentShader: /* glsl */ `
       uniform sampler2D tScene;
-      uniform float uTime, uSepia, uVignette, uGrain, uFlash;
+      uniform float uTime, uSepia, uVignette, uGrain, uFlash, uFade, uContrast, uAspect, uExposure;
+      uniform vec3 uSun;
       varying vec2 vUv;
       float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       void main() {
         vec3 c = texture2D(tScene, vUv).rgb;
+        c *= uExposure;
         #ifdef TONE_MAPPING
           c = toneMapping(c);
         #endif
+        // sun glow + a faint horizontal (anamorphic) streak, added before the grade so it gets warmed too
+        if (uSun.z > 0.0) {
+          vec2 dv = (vUv - uSun.xy) * vec2(uAspect, 1.0);
+          float d2 = dot(dv, dv);
+          vec3 glow = vec3(1.0, 0.78, 0.5) * (exp(-d2 * 9.0) * 0.55 + exp(-d2 * 90.0) * 0.6);
+          glow += vec3(1.0, 0.82, 0.6) * exp(-abs(dv.y) * 70.0) * exp(-abs(dv.x) * 2.2) * 0.22;
+          c += glow * uSun.z;
+        }
+        c = (c - 0.5) * uContrast + 0.5;
         float l = dot(c, vec3(0.299, 0.587, 0.114));
         vec3 sepia = vec3(l * 1.08, l * 0.96, l * 0.80);
         c = mix(c, sepia, uSepia);
@@ -46,6 +62,7 @@ export function createGrading(renderer, { samples = 0 } = {}) {
         float g = hash(vUv * 1000.0 + fract(uTime) * 37.0) - 0.5;
         c += g * uGrain;
         c = mix(c, vec3(1.0, 0.35, 0.25), uFlash);
+        c = mix(c, vec3(0.03, 0.022, 0.015), uFade);
         gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
         #include <colorspace_fragment>
       }
@@ -59,9 +76,10 @@ export function createGrading(renderer, { samples = 0 } = {}) {
   postScene.add(quad);
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
+  material.uniforms.uAspect.value = size.x / Math.max(1, size.y);
   return {
     material,
-    setSize(w, h) { target.setSize(w, h); },
+    setSize(w, h) { target.setSize(w, h); material.uniforms.uAspect.value = w / Math.max(1, h); },
     render(scene, camera, time) {
       material.uniforms.uTime.value = time;
       renderer.setRenderTarget(target);

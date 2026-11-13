@@ -84,6 +84,7 @@ export function createUI(ctx) {
           <div class="title display">${titleWords.join(' ')} <em>${titleLast}</em></div>
           <div class="sub">${t('subtitle')}</div>
           <button class="btn go" type="button">${t('start')}</button>
+          <button class="btn alt sm to-title" type="button">${t('menu')}</button>
           ${levelSwitch(1)}
         </div>
         <div class="col">
@@ -99,6 +100,7 @@ export function createUI(ctx) {
         <div class="col">
           <button class="btn resume" type="button">${t('resume')}</button>
           <button class="btn alt restart" type="button">${t('restart')}</button>
+          <button class="btn alt to-title" type="button">${t('menu')}</button>
         </div>
         <div class="col">
           <div class="setting"><div class="setting-head"><span>${t('volume')}</span><span class="val vol-val"></span></div>
@@ -118,7 +120,7 @@ export function createUI(ctx) {
             <div class="stat"><span>${t('time')}</span><b class="r-time"></b></div>
             <div class="stat"><span>${t('delivered')}</span><b class="r-barrels"></b></div>
           </div>
-          <button class="btn again" type="button">${t('again')}</button>
+          <div class="btn-row"><button class="btn again" type="button">${t('again')}</button><button class="btn alt to-title" type="button">${t('menu')}</button></div>
         </div>
         <div class="card"><h3 class="display">${t('historyTitle')}</h3><p>${t('history')}</p></div>
       </div>
@@ -133,7 +135,7 @@ export function createUI(ctx) {
             <div class="stat"><span>${t('time')}</span><b class="f-time"></b></div>
             <div class="stat"><span>${t('lostLabel')}</span><b class="f-lost"></b></div>
           </div>
-          <button class="btn retry" type="button">${t('tryAgain')}</button>
+          <div class="btn-row"><button class="btn retry" type="button">${t('tryAgain')}</button><button class="btn alt to-title" type="button">${t('menu')}</button></div>
         </div>
         <div class="card"><p class="f-tip"></p></div>
       </div>
@@ -188,7 +190,6 @@ export function createUI(ctx) {
     blurFocus();
   }
   // initial
-  el.menu.classList.add('on');
 
   events.on('state', (e) => applyState(e.state));
 
@@ -309,6 +310,7 @@ export function createUI(ctx) {
   $('.again').addEventListener('click', doRestart);
   $('.retry').addEventListener('click', doRestart);
   el.pauseBtn.addEventListener('click', doPause);
+  root.querySelectorAll('.to-title').forEach((b) => b.addEventListener('click', () => events.emit('ui:title')));
 
   // settings
   function syncSettingsUI() {
