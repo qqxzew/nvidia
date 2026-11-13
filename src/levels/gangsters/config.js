@@ -2,12 +2,16 @@
 // See docs/LEVEL3.md for the contract between modules.
 
 export const CONFIG3 = {
+  // --- the numbers you are most likely to tweak ---------------------------------------------------
   game: {
-    duration: 95,          // seconds until the police arrive (= win)
+    duration: 60,          // seconds until the police arrive (= win)
     barrelCount: 10,
-    maxStolen: 3,          // a 4th stolen barrel = fail
+    maxStolen: 5,          // you may lose this many barrels; one more = fail
     countdown: 3,
   },
+
+  // stars on a win: 3 stars if stolen <= stars3, 2 stars if stolen <= stars2, otherwise 1
+  stars: { stars3: 0, stars2: 2 },
 
   shotgun: {
     shells: 2,

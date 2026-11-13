@@ -194,7 +194,7 @@ function fail(reason) {
 function finish() {
   const kept = G.onShelf + G.carried;
   G.score += kept * C.score.perBarrelLeft;
-  const stars = G.stolen === 0 ? 3 : G.stolen <= 1 ? 2 : 1;
+  const stars = G.stolen <= C.stars.stars3 ? 3 : G.stolen <= C.stars.stars2 ? 2 : 1;
   G.result = { time: G.time, stolen: G.stolen, stars, score: G.score };
   progress.complete(3, { stars, time: G.time });
   setState('won');
