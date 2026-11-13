@@ -47,7 +47,7 @@ const STRINGS = {
     best: 'Nejlepší {time}',
     aboutText:
       'Krátké akční kapitoly vás provedou historií budov, ve kterých dnes sídlí TechTower. V letech 1910–1933 tu stál pivovar Světovar a vy v něm zažijete obyčejný pracovní den.',
-    aboutMeta: 'Prototyp · kapitola 1 · zvuky generované v prohlížeči',
+    aboutMeta: 'Vytvořeno 13. 11. 2026 na hackathonu EPIC Tower hackathon · Tým: Tomáš Krůta, Andrii Fedorov, Oleksii Logosha, Adam Hojer',
     prologue: 'Prolog',
     prologue1: 'Vážení, vítejte na cestě historií TechToweru. Lepšího průvodce byste nenašli. Jsem totiž Aneta Chodorová, organizátorka hackathonů.',
     prologue2: 'TechTower je dneska dominantou Plzně v moderních technologiích a sjíždějí se sem odborníci z celého národa.',
@@ -256,7 +256,7 @@ const STRINGS = {
     best: 'Best {time}',
     aboutText:
       'Short action chapters take you through the history of the buildings that house TechTower today. From 1910 to 1933 this was the Světovar brewery, and you spend an ordinary working day there.',
-    aboutMeta: 'Prototype · chapter 1 · sounds generated in the browser',
+    aboutMeta: 'Created on 13 Nov 2026 at the EPIC Tower hackathon · Team: Tomáš Krůta, Andrii Fedorov, Oleksii Logosha, Adam Hojer',
     prologue: 'Prologue',
     prologue1: 'Welcome, everyone, to a journey through TechTower’s history. You couldn’t ask for a better guide: I’m Aneta Chodorová, hackathon organiser.',
     prologue2: 'Today TechTower is Pilsen’s landmark for modern technology, and experts come here from all over the country.',
@@ -454,7 +454,7 @@ const STRINGS = {
     best: 'Bestzeit {time}',
     aboutText:
       'Kurze Action-Kapitel führen dich durch die Geschichte der Gebäude, in denen heute der TechTower sitzt. Von 1910 bis 1933 stand hier die Brauerei Světovar, und du erlebst dort einen gewöhnlichen Arbeitstag.',
-    aboutMeta: 'Prototyp · Kapitel 1 · Klänge im Browser erzeugt',
+    aboutMeta: 'Entstanden am 13.11.2026 beim EPIC Tower Hackathon · Team: Tomáš Krůta, Andrii Fedorov, Oleksii Logosha, Adam Hojer',
     prologue: 'Prolog',
     prologue1: 'Herzlich willkommen auf der Reise durch die Geschichte des TechTower. Eine bessere Führerin findet ihr nicht: Ich bin Aneta Chodorová, Organisatorin von Hackathons.',
     prologue2: 'Heute ist der TechTower das Wahrzeichen Pilsens für moderne Technologien, und Fachleute aus dem ganzen Land kommen hierher.',
