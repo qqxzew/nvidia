@@ -28,7 +28,7 @@ export const progress = {
   /** highest level id the player has reached in story mode (0 = none) */
   get reached() { return data.reached; },
   best(id) { return data.best[id] || null; },
-  isUnlocked(id) { return data.started && id <= Math.max(1, data.reached); },
+  isUnlocked(id) { return LEVELS.some((l) => l.id === id && l.playable); }, // all levels open (free level select)
   /** the level "Pokračovat" should open */
   nextLevel() {
     const next = LEVELS.find((l) => l.playable && l.id >= Math.max(1, data.reached)) || LEVELS.filter((l) => l.playable).pop();
