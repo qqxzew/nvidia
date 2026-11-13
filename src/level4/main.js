@@ -118,6 +118,8 @@ events.on('run:hit', () => { camRig.shake = 1; });
 // --- first-person camera ----------------------------------------------------------------------------
 const camRig = { snap: true, shake: 0, roll: 0, bob: 0, lastLat: 0, look: new THREE.Vector3(), fovK: 0 };
 const _look = new THREE.Vector3();
+// walking-surface height at arc length s (v2 course: real floors + stairs; falls back to the constant deck)
+const deckAt = (s) => (course.deckAt ? course.deckAt(s) : RUN.deckY);
 function updateCamera(dt, t, rs) {
   const path = course.path;
   const s = rs ? rs.s : course.start;
@@ -130,11 +132,12 @@ function updateCamera(dt, t, rs) {
   camRig.bob += dt * (running ? speed * 1.55 : 0);
   const bobY = running ? Math.abs(Math.sin(camRig.bob)) * 0.06 * Math.min(1, speed / 6) : 0;
   const fall = rs?.falling ?? 0;
-  const y = RUN.deckY + RUN.eyeHeight + (rs?.height ?? 0) + bobY - fall * fall * 4.5 - (rs?.stumble ?? 0) * 0.12;
+  const deck = deckAt(s); // v2: real floors + stairs
+  const y = deck + RUN.eyeHeight + (rs?.height ?? 0) + bobY - fall * fall * 4.5 - (rs?.stumble ?? 0) * 0.12;
   camera.position.set(p.x + rx * lat, y, p.z + rz * lat);
   // look ahead along the path so corners are anticipated smoothly
   const ahead = path.at(Math.min(path.length, s + 7));
-  _look.set(ahead.x + (-ahead.tz) * lat * 0.6, RUN.deckY + RUN.eyeHeight - 0.35 + (rs?.height ?? 0) * 0.4 - fall * 3, ahead.z + ahead.tx * lat * 0.6);
+  _look.set(ahead.x + (-ahead.tz) * lat * 0.6, deckAt(Math.min(path.length, s + 7)) + RUN.eyeHeight - 0.35 + (rs?.height ?? 0) * 0.4 - fall * 3, ahead.z + ahead.tx * lat * 0.6);
   if (camRig.snap) { camRig.look.copy(_look); camRig.snap = false; }
   else camRig.look.lerp(_look, 1 - Math.exp(-dt * 10));
   camera.up.set(0, 1, 0);
@@ -256,13 +259,13 @@ function buildPlaceholder() {
   for (const q of course.path.samples) {
     if (Math.round(q.s * 20) % 20) continue; // one slab per meter
     const m = new THREE.Mesh(new THREE.BoxGeometry(RUN.deckWidth, 0.08, 1.02), mat);
-    m.position.set(q.x, RUN.deckY - 0.04, q.z); m.rotation.y = Math.atan2(q.tx, q.tz); g.add(m);
+    m.position.set(q.x, deckAt(q.s) - 0.04, q.z); m.rotation.y = Math.atan2(q.tx, q.tz); g.add(m);
   }
   for (const h of course.hazards) {
     const p = course.path.at(h.s);
     for (const lane of h.lanes) {
       const m = new THREE.Mesh(new THREE.BoxGeometry(RUN.laneWidth * 0.9, 0.1, h.type === 'hole' ? h.len : 0.5), h.type === 'hole' ? holeMat : new THREE.MeshLambertMaterial({ color: { steam: 0xdddddd, drip: 0x5588aa, fall: 0x8a6a3a, pipe: 0x7a3a2a }[h.type] }));
-      m.position.set(p.x - p.tz * lane * RUN.laneWidth, RUN.deckY + (h.type === 'hole' ? 0.01 : 0.3), p.z + p.tx * lane * RUN.laneWidth);
+      m.position.set(p.x - p.tz * lane * RUN.laneWidth, deckAt(h.s) + (h.type === 'hole' ? 0.01 : 0.3), p.z + p.tx * lane * RUN.laneWidth);
       m.rotation.y = Math.atan2(p.tx, p.tz); g.add(m);
     }
   }

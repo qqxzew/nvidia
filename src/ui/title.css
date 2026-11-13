@@ -99,6 +99,55 @@
 .tt-level.off .num { background: var(--ink-3); }
 .tt-level.off .txt b { color: var(--ink-2); }
 
+/* levels list ↔ map: each level has its printed map colour; the highlighted row is underlaid */
+.tt-level .num { background: var(--lv, var(--red)); }
+.tt-level.hi { background: var(--ink-line); box-shadow: inset 3px 0 0 var(--lv, var(--red)); }
+.tt-level.hi .num { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--lv, var(--red)); }
+
+/* ---------- levels map (src/ui/map.js): numbered pins projected from the 3D model ---------- */
+.mp-layer { position: absolute; inset: 0; pointer-events: none; opacity: 0; visibility: hidden;
+  transition: opacity .45s var(--ease), visibility 0s linear .45s; }
+.mp-layer.on { opacity: 1; visibility: visible; transition: opacity .6s var(--ease) .9s, visibility 0s; }
+.plz-title.on .mp-layer.on .mp-pin { pointer-events: auto; }
+.mp-pin { position: absolute; left: 0; top: 0; width: 0; height: 0; cursor: pointer; will-change: transform; z-index: 1; }
+.mp-pin.hi { z-index: 3; }
+.mp-pin::before { content: ''; position: absolute; left: -.5px; bottom: 0; width: 1px; height: 14px; background: var(--ink); }
+.mp-pin::after { content: ''; position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--lv); box-shadow: 0 0 0 1.5px var(--paper), 0 1px 4px rgba(20, 12, 6, .5); }
+.mp-b { position: absolute; left: 0; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 7px;
+  padding: 3px 9px 3px 3px; white-space: nowrap; text-align: left;
+  background-color: var(--paper); background-image: var(--tex); color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 3px; box-shadow: 0 4px 12px rgba(20, 12, 6, .35);
+  transition: transform .2s var(--ease); }
+.mp-pin:hover .mp-b, .mp-pin.hi .mp-b { transform: translateX(-50%) translateY(-2px); }
+.mp-pin .n { flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 2px;
+  background: var(--lv); color: var(--paper); font: 850 14px/1 var(--grot); }
+.mp-pin .t { display: flex; flex-direction: column; gap: 2px; }
+.mp-pin .t b { display: flex; align-items: center; gap: 4px; font: 750 12px/1.1 var(--grot); font-stretch: 104%; text-transform: uppercase; letter-spacing: .02em; }
+.mp-pin .lk { display: block; width: 12px; height: 12px; color: var(--ink-3); }
+.mp-pin .lk svg { width: 100%; height: 100%; }
+.mp-pin .w { display: none; max-width: 240px; white-space: normal; font-size: 13px; line-height: 1.2; color: var(--ink-2); }
+.mp-pin .go { display: none; font: 700 11px/1 var(--grot); text-transform: uppercase; letter-spacing: .05em; color: var(--lv); }
+.mp-pin .go::before { content: '▸ '; }
+.mp-pin.hi .mp-b { padding: 5px 11px 6px 5px; border-color: var(--lv); box-shadow: 0 0 0 1px var(--lv), 0 6px 16px rgba(20, 12, 6, .4); }
+.mp-pin.hi .w, .mp-pin.hi .go { display: block; }
+.mp-pin.off .n { background: var(--ink-3); }
+.mp-pin.off .go { color: var(--ink-3); }
+.mp-pin.off .go::before { content: ''; }
+.mp-layer.has-hi .mp-pin:not(.hi) { opacity: .72; }
+.mp-pin:focus-visible { outline: none; }
+.mp-pin:focus-visible .mp-b { outline: 2px solid var(--red); outline-offset: 2px; }
+.mp-hint { position: absolute; top: max(12px, var(--st)); right: max(16px, var(--sr)); padding: 7px 10px; border-radius: 2px;
+  background: var(--enamel-a); color: var(--cream); box-shadow: var(--shadow);
+  font: 600 11px/1 var(--grot); font-stretch: 104%; text-transform: uppercase; letter-spacing: .05em; }
+/* phones in landscape: idle pins are just the number, the highlighted one opens up */
+@media (max-height: 500px) {
+  .mp-pin:not(.hi) .t { display: none; }
+  .mp-pin:not(.hi) .mp-b { padding: 3px; }
+  .mp-pin .w { max-width: 200px; font-size: 12px; }
+}
+@media (min-height: 760px) and (min-width: 1200px) { .mp-pin .w { display: block; } }
+
 .tt-quote { margin: 0 0 4px; }
 .tt-quote p { margin: 0 0 8px; font-size: 14px; line-height: 1.42; }
 .tt-quote footer { font-size: 13px; color: var(--ink-2); }
@@ -136,4 +185,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .tt-view.on, .plz-title.intro .tt-col, .plz-title.intro .tt-flags, .plz-title.intro .tt-bar { animation: none; }
+  .mp-b { transition: none; }
 }

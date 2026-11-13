@@ -433,6 +433,8 @@ export const DECALS4 = {
   gauge: px(0, 512, 256, 768), clock: px(256, 512, 512, 768), board: px(512, 512, 1024, 768),
   jute: px(0, 768, 512, 1024), crate: px(512, 768, 1024, 1024),
 };
+// v2 section ids → plates
+Object.assign(DECALS4, { varna: DECALS4.kettles, tower: DECALS4.mash, bridge: DECALS4.lauter, cellarTower: DECALS4.hops });
 function drawDecals4() {
   const S = 1024, c = canvas(S, S), g = c.getContext('2d'), R = rng(4);
   const chips = (x, y, w, h, n) => { for (let i = 0; i < n; i++) { g.fillStyle = 'rgba(30,26,22,0.85)'; g.beginPath(); g.arc(x + R() * w, y + (R() < 0.5 ? R() * 10 : h - R() * 10), 2 + R() * 5, 0, 6.283); g.fill(); } };
@@ -453,11 +455,12 @@ function drawDecals4() {
     g.font = 'bold 19px Georgia, serif'; g.fillText(small, x + 256, y + 98, 450);
     chips(x + 8, y + 8, 496, 112, 5);
   };
-  plate(0, 128, 'RMUTOVNA', 'VARNA I · ČESKÝ PLZEŇSKÝ PIVOVAR');
-  plate(512, 128, 'SCEZOVNA', 'SCEZOVACÍ KÁĎ · VARNA I');
-  plate(0, 256, 'MLADINOVÉ PÁNVE', 'VARNA I · CHMELOVAR');
-  plate(512, 256, 'CHMELOVÝ SKLAD', 'ŽATECKÝ CHMEL · VARNA I');
-  plate(0, 384, 'CHLADICÍ ŠTOK', 'VARNA I · CHLAZENÍ MLADINY');
+  // level 4 v2 sections (the old mash / lauter / hops slots are reused: keys kept, aliases on DECALS4)
+  plate(0, 128, 'HODINOVÁ VĚŽ', 'VARNA · ČESKÝ PLZEŇSKÝ PIVOVAR');
+  plate(512, 128, 'KRYTÝ MOST', 'VARNA → VĚŽ SKLEPŮ · NAD VLEČKOU');
+  plate(0, 256, 'MLADINOVÉ PÁNVE', 'VARNA · 2. PATRO · CHMELOVAR');
+  plate(512, 256, 'VĚŽ SKLEPŮ', 'SCHODIŠTĚ · LEŽÁCKÉ SKLEPY');
+  plate(0, 384, 'CHLADICÍ ŠTOK', 'LEŽÁCKÉ SKLEPY · CHLAZENÍ MLADINY');
   enamel(512, 384, '#8c2a22', 'HLAVNÍ PARNÍ VENTIL', 44);
   // pressure gauge 256 x 256 at (0, 512): brass bezel, red zone, "atm"
   {

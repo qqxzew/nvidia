@@ -5,7 +5,8 @@
 //   state: { time (race clock s, only runs while playing — the hazard helpers use THIS), penalty (s added by falls),
 //            remaining = timeLimit − time − penalty, s (arc length), progress 0..1 (start → finish), lane (target −1|0|1),
 //            lateral (current m, + = right of the running direction), x, z, yaw, tx, tz (unit tangent),
-//            height (feet above the deck, jump arc; stays 0 while falling), airborne, speed (m/s), stumble 1→0 after a hit,
+//            deck (walking-surface height at s = course.deckAt(s), world Y), height (feet above the LOCAL deck, jump arc;
+//            stays 0 while falling), airborne, speed (m/s), stumble 1→0 after a hit,
 //            falling 0..1 (sinking through a hole, then respawn), invuln (s left), lean −1..1 (lane-change velocity, for
 //            camera roll), stride (m run in total, for footsteps / head bob), hits, falls, jumps,
 //            section {id, name}, fallTriggers {hazardId: raceTime}, nearSteam 0..1, nearDrip 0..1,
@@ -30,6 +31,9 @@
 //   Lane change: ← / → retarget the lane at once (also mid-air and mid-slide); lateral eases out to the lane centre in
 //   laneTime per lane. Jump: a press starts a jumpTime / jumpHeight parabola when grounded; a press while airborne is
 //   buffered for jumpBuffer s and fires on landing. Coyote: standing over a hole you get `coyote` s to still jump.
+//   Heights: every check (jump arc, blocks, pipes, steam / drip safe heights) is relative to the local walking surface
+//   deck = course.deckAt(s) (v2: real floors + the stairs; RUN.deckY when the course has no deckAt). On the stairs the
+//   runner keeps running along s; the deck simply rises under it (camera / visuals add deck + height).
 //   Collisions use the body interval swept over the frame [s_prev − bodyHalf, s + bodyHalf] and the current lateral:
 //   a hazard lane counts while |lateral − laneCentre| < lat<Kind> (0.45–0.55 m: a half-finished slide still gets clipped).
 //     hole  (centred at h.s, h.len long): feet (s) inside [h.s − len/2 + holeEdge, h.s + len/2 − holeEdge] and laterally
@@ -54,7 +58,8 @@ import { COURSE, buildCourse, steamLevel, dripState, fallProgress, BLOCK_HEIGHT 
 
 const DEFAULTS = {
   // RUN keys (config.js RUN overrides every one of these; values here = the tuning proposed by scripts/level4-sim.mjs)
-  timeLimit: 62,
+  timeLimit: 42,
+  deckY: 6.0,            // fallback walking surface when the course has no deckAt
   laneWidth: 0.85,
   speedStart: 5.4,
   speedMax: 7.6,
@@ -82,7 +87,7 @@ const DEFAULTS = {
   steamSafeHeight: 1.6, dripSafeHeight: 1.2, blockClear: 0.05, pipeClear: 0.05,
   sackHitK: 0.55,        // a falling sack hurts in the lower part of its fall
   nearRange: 12,         // m ahead for nearSteam / nearDrip
-  star3Remaining: 10, star3Hits: 0, star2Remaining: 4, star2Faults: 3,
+  star3Remaining: 7, star3Hits: 0, star2Remaining: 3, star2Faults: 3,   // v2 course (≈ 208 m, 42 s; scaled from 10 / 4 at 62 s)
   maxDt: 0.1,
   headless: false,       // true: skip the audio helpers (nearSteam / nearDrip) — bots / planners
 };
@@ -96,6 +101,7 @@ export function createRunner(ctx = {}) {
   const emit = (n, p) => events.emit(n, p);
   const course = ctx.course || buildCourse(COURSE, C.laneWidth);
   const path = course.path;
+  const deckAt = course.deckAt ? (s) => course.deckAt(s) : () => C.deckY;
   const god = !!(ctx.god || C.god);
   const W = C.laneWidth;
   const maxMomentum = Math.max(0, C.speedMax - C.speedStart);
@@ -114,7 +120,7 @@ export function createRunner(ctx = {}) {
     };
     Object.assign(st, {
       time: 0, penalty: 0, remaining: C.timeLimit, timeLimit: C.timeLimit,
-      s: course.start, progress: 0, lane: 0, lateral: 0, x: 0, z: 0, yaw: 0, tx: 0, tz: -1,
+      s: course.start, progress: 0, lane: 0, lateral: 0, x: 0, z: 0, yaw: 0, tx: 0, tz: -1, deck: deckAt(course.start),
       height: 0, airborne: false, speed: C.speedStart, stumble: 0, falling: 0, invuln: 0, lean: 0, stride: 0,
       hits: 0, falls: 0, jumps: 0,
       section: sectionAt(course.start), fallTriggers: {}, nearSteam: 0, nearDrip: 0,
@@ -136,6 +142,7 @@ export function createRunner(ctx = {}) {
     st.x = p.x - p.tz * st.lateral;
     st.z = p.z + p.tx * st.lateral;
     st.yaw = Math.atan2(p.tx, p.tz);
+    st.deck = deckAt(st.s);
     st.progress = clamp((st.s - course.start) / (course.finish - course.start), 0, 1);
   }
 

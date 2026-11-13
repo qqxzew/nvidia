@@ -1,13 +1,13 @@
 // Level 4 "Varna" — first-person catwalk run through the brewhouse (owner: lead). Units: meters, seconds.
 // World: Y up, X = east, Z = south. The course is a polyline (src/core/paths.js) on the catwalk floor at
-// RUN.deckY; the runner moves forward automatically along it and only changes lane / jumps.
+// course.deckAt(s) (v2; RUN.deckY is only a fallback); the runner moves forward automatically along it and only changes lane / jumps.
 // Lateral offset convention: lane −1 = left, +1 = right of the running direction.
 //   right vector of a path tangent (tx, tz) = (−tz, tx)   → lateral position = path point + right * offset
 
 export const RUN = {
   countdown: 3,
-  timeLimit: 62,          // seconds until the kettle boils over (the race against the clock)
-  deckY: 6.0,             // catwalk walking surface above the hall floor (vats stand on the floor below)
+  timeLimit: 42,          // seconds until the kettle boils over (v2 course ≈ 208 m; perfect bot 32.2 s = 23 % to spare, as before)
+  deckY: 6.0,             // FALLBACK only: the walking surface is course.deckAt(s) (real floors + stairs, v2)
   deckWidth: 2.7,         // grating width between the railings
   laneWidth: 0.85,        // lane centres at −0.85, 0, +0.85
   eyeHeight: 1.62,

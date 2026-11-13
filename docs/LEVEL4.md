@@ -1,5 +1,21 @@
 # Plzeň 1926 — Level 4 "Varna" (first-person catwalk run)
 
+> **v2 — real route through the real buildings (2026-11-13, user request).** Overrides the course layout below.
+> The course now follows the actual Světovar buildings from the 1912 drawings, in real dimensions:
+> **Varna 2nd floor** (gallery around the open kettle hall, the two brew kettles below) → **clock tower** →
+> **covered bridge** over the yard tracks → **cellar-tower staircase + tower** → **stairs up** into the
+> **cooling floor ("chladicí štok")** under the cellars' roof → serpentine between the coolers → main valve (finish).
+> Single source of truth: `src/core/sites.js` (`LEVEL4_ROUTE`, `BUILDINGS`, `L4_ORIGIN`, `toL4`), in level-1 world
+> coordinates. Level 4 works in local coordinates `local = world − L4_ORIGIN` (Y unchanged, metres above ground).
+> - Length ≈ 208 m (was 322). Walking surface is **no longer constant**: `course.deckAt(s)` (8.2 m from the start
+>   through the bridge and the cellar tower, stairs at s ≈ 99.5 → 108.5 up to 13.6 m, then 13.6 m to the finish).
+>   `course.stairs = [{ s0, s1, y0, y1 }]`. `RUN.deckY` is only a fallback.
+> - Sections (start s): varna 0 · tower ≈ 50 · bridge ≈ 58 · cellarTower ≈ 78 · cool ≈ 103.
+> - Real widths: Varna interior x −159.4…−141.6, z 895.6…914.4 (gallery legs leave ≈ 0.25 m to the walls);
+>   bridge interior ±1.5 m; the kettles (r ≈ 2.1 m) stand at world (−147.1, 901) and (−147.1, 908.5).
+> - Extra layout rules: no hazard on the stairs or within 5 m of their ends; corners ±5 m stay clear (as before).
+> - The drawings have no floor plans: the 2nd-floor gallery around an open kettle hall is an informed guess.
+
 Standalone level, **not linked from the main game flow yet**. Open with `?level=4`. Everything lives in
 `src/level4/`. Read `docs/ARCHITECTURE.md` first (units, Y up, X east, Z south, shared materials, merged
 geometry, `CanvasTexture` ≤ 1024 px, mobile budget). Level 1 and level 5 files are read-only.

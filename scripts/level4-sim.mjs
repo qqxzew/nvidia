@@ -1,10 +1,11 @@
 // Headless tuning check for level 4 "Varna" (catwalk run): node scripts/level4-sim.mjs [--config] [--trace bot]
 // Runs bots through the real runner (src/level4/runner.js) at 60 and 30 fps and prints the outcomes.
 // Expectations: idle → fail 'time' with many hits / falls; perfect (exact knowledge, 0.15 s reaction) → 0 hits,
-// 3 stars in ~48 s; human (0.35 s reaction, misjudges 10 % of the hazards) → finishes with 1–2 stars;
+// 3 stars in ~32 s of 42 (v2 course: the real route, ≈ 208 m, stairs at s ≈ 99.5 → 108.5); human (0.35 s reaction, misjudges 10 % of the hazards) → finishes with 1–2 stars;
 // jump-only / dodge-only → fail or 1 star.
 // Also checks the course layout: corner fillets kept clear, never all three lanes blocked by steam / drips at once,
-// spacing of jump-only obstacles, respawn spots before holes.
+// nothing on the stairs or within 5 m of their ends, spacing of jump-only obstacles, respawn spots before holes,
+// and the walking surface (deckAt / stairs / sections / finish match the route).
 // PROPOSED = tuning values not yet in config.js RUN (run with --config to test config.js alone;
 // L4='{"timeLimit":60}' node scripts/level4-sim.mjs tries extra overrides; L4P='{"depth":4}' tweaks the perfect bot;
 // L4DBG=<s> prints the perfect / human plans around arc length s; --quick = fewer human seeds).
@@ -17,7 +18,7 @@ import { COURSE, buildCourse, STEAM_LEN } from '../src/level4/course.js';
 import { createRunner } from '../src/level4/runner.js';
 
 const PROPOSED = {
-  speedStart: 5.4, speedMax: 7.6, speedRamp: 0.055, timeLimit: 62,
+  speedStart: 5.4, speedMax: 7.6, speedRamp: 0.055, timeLimit: 42,
   ...(process.env.L4 ? JSON.parse(process.env.L4) : {}),
 };
 const USE_CONFIG = process.argv.includes('--config');
@@ -40,6 +41,8 @@ function createBus() {
 
 // --- layout checks ------------------------------------------------------------------------------------------
 function cornerCentres() {
+  // v2: buildCourse gives the corner fillet centres (each corner point projected onto the path)
+  if (course.corners) return course.corners;
   // samples where the heading turns, clustered into fillets → their centres
   const S = course.path.samples, turning = [];
   for (let i = 10; i < S.length - 10; i++) {
@@ -64,6 +67,7 @@ function checkLayout() {
     for (const c of corners) if (Math.abs(h.s - c) < 5 + extent(h)) issues.push(`#${h.id} ${h.type}@${h.s} inside corner fillet ${c.toFixed(1)} ±5`);
     if (h.s + extent(h) > course.finish - 4) issues.push(`#${h.id} too close to the finish`);
     if (h.s - extent(h) < course.start + 8) issues.push(`#${h.id} too close to the start`);
+    for (const st of course.stairs || []) if (h.s + extent(h) > st.s0 - 5 && h.s - extent(h) < st.s1 + 5) issues.push(`#${h.id} ${h.type}@${h.s} on / within 5 m of the stairs ${st.s0.toFixed(1)}–${st.s1.toFixed(1)}`);
     if (h.type === 'steam' && h.lanes.length > 2) issues.push(`#${h.id} steam over all lanes (no dodge)`);
   }
   // steam / drips (can't be jumped) must never cover all three lanes within 1.5 m of each other
@@ -90,6 +94,19 @@ function checkLayout() {
     const clear = cand.filter((l) => !HZ.some((o) => o !== h && o.lanes.includes(l) && o.s + extent(o) > s - 1 && o.s - extent(o) < h.s + h.len / 2 + (free.length ? 3 : 0)));
     if (!clear.length) issues.push(`#${h.id} hole@${h.s}: respawn spot ${s.toFixed(1)} has no clear lane`);
   }
+  // walking surface + sections: continuous, stairs where the deck changes, sections tile [0, length]
+  if (course.deckAt) {
+    for (let s = 0; s < course.length; s += 0.5) {
+      const d = Math.abs(course.deckAt(s + 0.5) - course.deckAt(s));
+      if (d > 0.5) issues.push(`deckAt jumps ${d.toFixed(2)} m at s ${s}`);
+      const onStairs = (course.stairs || []).some((q) => s + 0.5 > q.s0 && s < q.s1);
+      if (d > 1e-6 && !onStairs) issues.push(`deckAt changes outside the stairs at s ${s}`);
+    }
+  }
+  const secs = course.sections;
+  if (secs[0].from > 1e-6 || Math.abs(secs[secs.length - 1].to - course.length) > 1e-6) issues.push('sections do not cover the course');
+  for (let i = 1; i < secs.length; i++) if (Math.abs(secs[i].from - secs[i - 1].to) > 1e-6 || secs[i].from <= secs[i - 1].from) issues.push(`section ${secs[i].id} does not follow ${secs[i - 1].id}`);
+  if (Math.abs(course.finish - (course.length - 4)) > 1e-6) issues.push(`finish ${course.finish} ≠ length − 4`);
   return { issues, corners };
 }
 
@@ -255,7 +272,7 @@ function run(name, bot, { fps = 60, maxT = 200 } = {}) {
       progress: (st.progress * 100).toFixed(0) + '%',
       hits: st.hits, falls: st.falls, stars: st.stars,
       jumps: st.jumps, lanes,
-      sections: events.log.filter((e) => e[0] === 'run:section').map((e) => e[1].id[0]).join(''),
+      sections: events.log.filter((e) => e[0] === 'run:section').map((e) => e[1].id.slice(0, 2)).join(' '),
       triggers: events.log.filter((e) => e[0] === 'run:trigger').length,
     },
     hitIds,
@@ -335,20 +352,38 @@ function mechanics() {
     const s0 = st.s; for (let i = 0; i < 200; i++) r.update(DT, NO, false);
     ok(st.speed < 0.5 && st.s > s0, 'coasts to a stop after the finish');
   }
+  // v2 deck: state.deck follows course.deckAt over stairs; a jump on the stairs clears a pipe relative to the local deck
+  {
+    const c = buildCourse({ points: [[0, 0], [0, -100]], radius: 0, start: 2, finish: 90,
+      elevation: [{ x: 0, z: -20, y: 8.2 }, { x: 0, z: -30, y: 13.6 }],
+      sections: [{ id: 'a', at: [0, 0], name: 'A' }, { id: 'b', at: [0, -50], name: 'B' }],
+      hazards: [{ type: 'pipe', s: 26, lanes: [-1, 0, 1], height: 0.45 }] }, CFG.laneWidth);
+    ok(c.stairs.length === 1 && Math.abs(c.stairs[0].s0 - 20) < 1e-6 && Math.abs(c.stairs[0].s1 - 30) < 1e-6 && c.stairs[0].y1 === 13.6, 'stairs from elevation knots');
+    ok(Math.abs(c.deckAt(25) - 10.9) < 1e-6 && c.deckAt(0) === 8.2 && c.deckAt(99) === 13.6, 'deckAt piecewise linear');
+    ok(c.sections[0].to === 50 && c.sections[1].to === c.length, 'sections from `at` points');
+    const r = createRunner({ events: createBus(), run: CFG, course: c }), st = r.state;
+    ok(st.deck === 8.2, `deck at the start ${st.deck}`);
+    runUntil(r, () => st.s > 25.3 - (CFG.speedStart + 0.1) * CFG.jumpTime / 2);
+    r.update(DT, ACTIONS.J, true);
+    let maxH = 0;
+    runUntil(r, () => st.s > 31, () => { maxH = Math.max(maxH, st.height); return NO; });
+    ok(st.hits === 0 && Math.abs(st.deck - 13.6) < 1e-6 && maxH <= CFG.jumpHeight + 1e-9, `jump over a pipe on the stairs (hits ${st.hits}, deck ${st.deck})`);
+  }
   return fails;
 }
 
 // --- main ------------------------------------------------------------------------------------------------------
 console.log(USE_CONFIG ? 'config.js RUN only' : `config.js RUN + PROPOSED ${JSON.stringify(PROPOSED)}`);
 const lay = checkLayout();
-console.log(`course: ${HZ.length} hazards, finish ${course.finish} m of ${course.length.toFixed(1)}, corners at ${lay.corners.map((c) => c.toFixed(1)).join(', ')}`);
+console.log(`course: ${HZ.length} hazards, finish ${course.finish.toFixed(1)} m of ${course.length.toFixed(1)}, corners at ${lay.corners.map((c) => c.toFixed(1)).join(', ')}`);
+console.log(`sections: ${course.sections.map((q) => `${q.id} ${q.from.toFixed(1)}–${q.to.toFixed(1)}`).join(' · ')}; stairs: ${(course.stairs || []).map((q) => `${q.s0.toFixed(1)}–${q.s1.toFixed(1)} (${q.y0} → ${q.y1} m)`).join(', ') || 'none'}`);
 const bySec = course.sections.map((sec) => `${sec.id} ${HZ.filter((h) => h.s >= sec.from && h.s < sec.to).length}`);
 console.log(`per section: ${bySec.join(' · ')}; types: ${JSON.stringify(HZ.reduce((m, h) => ((m[h.type] = (m[h.type] || 0) + 1), m), {}))}`);
 if (lay.issues.length) { console.log('LAYOUT ISSUES:'); for (const i of lay.issues) console.log('  ' + i); }
 else console.log('layout: ok');
 
 const mech = mechanics();
-console.log(mech.length ? 'MECHANICS FAILED:\n  ' + mech.join('\n  ') : 'mechanics: ok (jump buffer, coyote, respawn, mid-air lane change, invulnerability, pipe, sack, sections, finish)');
+console.log(mech.length ? 'MECHANICS FAILED:\n  ' + mech.join('\n  ') : 'mechanics: ok (jump buffer, coyote, respawn, mid-air lane change, invulnerability, pipe, sack, sections, finish, deck / stairs)');
 if (mech.length) process.exitCode = 1;
 
 const BOTS = [

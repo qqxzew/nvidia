@@ -1,13 +1,14 @@
 // Main menu over the Světovar film (cameraRig.titleShots), styled like a 1920s Světovar advertisement:
 // a red label with heavy grotesque lettering (as on the brewery wagons) and solid printed plates as buttons. Language = three flags (direct switch), settings = quiet
 // icons in the bottom-right corner.
-// Views: main · levels · about · prologue.  Emits: ui:menu (open level 1 briefing), ui:level {id} (open level 2), audio:volume, audio:mute.
+// Views: main · levels (+ the 3D site map, src/ui/map.js) · about · prologue.  Emits: ui:menu (open level 1 briefing), ui:level {id} (open level 2), audio:volume, audio:mute.
 // Level 3 opens as its own page (?level=3).
 import './title.css';
 import { t, getLang, setLang, LANGS, langName, fmtTime } from './i18n.js';
 import { ICON } from './icons.js';
 import { settings, saveSettings } from './shared.js';
 import { progress, LEVELS } from '../core/progress.js';
+import { createMap, LEVEL_COLORS } from './map.js';
 
 const FLAGS = {
   cs: '<svg viewBox="0 0 30 20" aria-hidden="true"><path fill="#fff" d="M0 0h30v10H0z"/><path fill="#d7141a" d="M0 10h30v10H0z"/><path fill="#11457e" d="M0 0l15 10L0 20z"/></svg>',
@@ -81,6 +82,8 @@ export function createTitle(ctx) {
   function show(name) {
     for (const k in views) views[k].classList.toggle('on', k === name);
     root.classList.toggle('sub', name !== 'main');
+    // Levels view = the 3D map of the site: the camera leaves the film and flies over the brewery
+    if (name === 'levels') map.open(); else map.close();
   }
 
   // --- story / levels ------------------------------------------------------------------------
@@ -97,7 +100,7 @@ export function createTitle(ctx) {
       if (open && best) right = `<span class="stars">${[0, 1, 2].map((i) => `<i class="${i < best.stars ? 'got' : ''}">${STAR}</i>`).join('')}</span><span class="meta">${t('best', { time: fmtTime(best.time) })}</span>`;
       else if (!open) right = `<span class="lock">${LOCK}</span>`;
       const desc = !l.playable || progress.isUnlocked(l.id) ? t(`${l.key}Desc`) : t('locked');
-      return `<li><button type="button" class="tt-level${open ? '' : ' off'}" data-level="${l.id}" ${open ? '' : 'disabled'}>
+      return `<li><button type="button" class="tt-level${open ? '' : ' off'}${map.highlighted === l.id ? ' hi' : ''}" data-level="${l.id}" style="--lv:${LEVEL_COLORS[l.id] || 'var(--red)'}" ${open ? '' : 'disabled'}>
         <span class="num">${l.id}</span>
         <span class="txt"><b>${t(`${l.key}Name`)}</b><span>${desc}</span></span>
         <span class="right">${right}</span></button></li>`;
@@ -118,9 +121,32 @@ export function createTitle(ctx) {
   $('.tt-about').addEventListener('click', () => show('about'));
   root.querySelectorAll('.tt-back').forEach((b) => b.addEventListener('click', () => show('main')));
   $('.tt-go').addEventListener('click', () => openLevel(1));
-  $('.tt-list').addEventListener('click', (e) => {
+  // list ↔ map: hover / focus highlights the level on the map; on touch the first tap highlights, the second opens
+  let listPointer = 'mouse';
+  const list = $('.tt-list');
+  list.addEventListener('pointerdown', (e) => { listPointer = e.pointerType || 'mouse'; });
+  list.addEventListener('keydown', () => { listPointer = 'key'; });
+  list.addEventListener('pointerover', (e) => {
     const b = e.target.closest('.tt-level');
-    if (b && !b.disabled) openLevel(Number(b.dataset.level));
+    if (b && e.pointerType === 'mouse') map.highlight(Number(b.dataset.level));
+  });
+  list.addEventListener('focusin', (e) => {
+    const b = e.target.closest('.tt-level');
+    if (b) map.highlight(Number(b.dataset.level));
+  });
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('.tt-level');
+    if (!b || b.disabled) return;
+    const id = Number(b.dataset.level);
+    if ((listPointer === 'touch' || listPointer === 'pen') && map.highlighted !== id) { map.highlight(id); return; }
+    openLevel(id);
+  });
+
+  const map = createMap(ctx, {
+    host: root,
+    leftEdge: () => $('.tt-col').getBoundingClientRect().right,
+    onOpen: (id) => openLevel(id),
+    onHighlight: (id) => root.querySelectorAll('.tt-level').forEach((b) => b.classList.toggle('hi', Number(b.dataset.level) === id)),
   });
 
   // --- language: tap a flag ------------------------------------------------------------------
@@ -174,6 +200,7 @@ export function createTitle(ctx) {
   // --- visibility ------------------------------------------------------------------------------
   events.on('state', (e) => {
     const on = e.state === 'title';
+    if (!on || !root.classList.contains('on')) map.reset(); // leaving / re-entering the menu: no fly-back
     if (on && !root.classList.contains('on')) {
       render(); sync(); show('main');
       root.classList.add('intro');
@@ -183,5 +210,5 @@ export function createTitle(ctx) {
   });
 
   render(); sync(); show('main');
-  return { show, render, setShot };
+  return { show, render, setShot, map };
 }

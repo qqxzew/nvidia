@@ -306,7 +306,9 @@ renderer.setAnimationLoop(() => {
     if (!orbit) {
       const intro = START_S < 20 && VIEW !== 'truck';
       if (G.state !== 'title') rig.clearOffset();
-      if (G.state === 'title') { menuFade = rig.titleShots(dt); title.setShot(rig.shot); }
+      // main menu → Levels: the 3D site map (src/ui/map.js) owns the camera while active, flies back into the film itself
+      if (G.state === 'title' && title.map.active) menuFade = title.map.update(dt, rig);
+      else if (G.state === 'title') { menuFade = rig.titleShots(dt); title.setShot(rig.shot); }
       else if (intro && G.state === 'menu') rig.introMenu(t);
       else if (intro && G.state === 'countdown') rig.introFly(1 - Math.max(0, G.countdown) / CONFIG.game.countdown, st, t);
       else rig.update(dt, st);
