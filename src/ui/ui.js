@@ -6,7 +6,7 @@
 // Consumes: state, countdown, barrel:lost, impact, finish, fail
 import './ui.css';
 import { t, barrels as barrelsText, fmtTime } from './i18n.js';
-import { ICON, dialFace, NEEDLE } from './icons.js';
+import { ICON, dialFace, NEEDLE, stamp } from './icons.js';
 import { input, settings, saveSettings } from './shared.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -33,6 +33,9 @@ export function createUI(ctx) {
   const root = document.createElement('div');
   root.className = 'plz' + (hasTouch ? ' has-touch' : '');
   root.innerHTML = `
+    <svg class="defs" width="0" height="0" aria-hidden="true"><defs>
+      <linearGradient id="plz-oak" x1="0" x2="1"><stop offset="0" stop-color="#7a4a22"/><stop offset=".42" stop-color="#c98d4c"/><stop offset=".6" stop-color="#b77a3d"/><stop offset="1" stop-color="#6c401c"/></linearGradient>
+    </defs></svg>
     <div class="hud">
       <div class="hud-col hud-l">
         <div class="panel p-time"><div class="lbl">${t('timeLabel')}</div><div class="big">${fmtTime(GAME.timeLimit)}</div></div>
@@ -44,7 +47,7 @@ export function createUI(ctx) {
       </div>
       <div class="hud-col hud-r">
         <button class="panel btn-pause" type="button" aria-label="${t('pause')}">${ICON.pause}</button>
-        <div class="dial">${dialFace()}<div class="needle">${NEEDLE}</div><div class="dial-read"><span class="spd">0</span> ${t('kmh')}</div></div>
+        <div class="dial">${dialFace()}<div class="needle">${NEEDLE}</div><div class="dial-read"><span class="spd">0</span><span class="u">${t('kmh')}</span></div></div>
       </div>
       <div class="top-wrap warn-wrap"><div class="banner">${t('warning')}</div></div>
       <div class="top-wrap toast-wrap"></div>
@@ -82,7 +85,7 @@ export function createUI(ctx) {
 
     <div class="scr scr-pause">
       <div class="panel pause-panel">
-        <div class="head"><div class="fan">${ICON.fan}</div><h2 class="display">${t('paused')}</h2></div>
+        <div class="head"><h2 class="display">${t('paused')}</h2></div>
         <div class="col">
           <button class="btn resume" type="button">${t('resume')}</button>
           <button class="btn alt restart" type="button">${t('restart')}</button>
@@ -98,9 +101,9 @@ export function createUI(ctx) {
 
     <div class="scr scr-win">
       <div class="panel res-panel">
-        <div class="head"><div class="fan">${ICON.fan}</div><h2 class="display">${t('winTitle')}</h2><div class="line"></div></div>
+        <div class="stamp">${stamp(t('stampTop'), t('stampBottom'))}</div>
+        <div class="head"><div class="note-kind">${t('noteKind')} · ${t('noteRoute')}</div><h2 class="display">${t('winTitle')}</h2><div class="line"></div></div>
         <div class="col">
-          <div class="stars">${[0, 1, 2].map((i) => `<div class="star" style="--i:${i}">${ICON.star}</div>`).join('')}</div>
           <div class="stats">
             <div class="stat"><span>${t('time')}</span><b class="r-time"></b></div>
             <div class="stat"><span>${t('delivered')}</span><b class="r-barrels"></b></div>
@@ -113,7 +116,8 @@ export function createUI(ctx) {
 
     <div class="scr scr-fail">
       <div class="panel res-panel">
-        <div class="head"><div class="fan">${ICON.fan}</div><h2 class="display f-title"></h2></div>
+        <div class="stamp">${stamp(t('stampTop'), t('stampBottom'), t('stampFail'))}</div>
+        <div class="head"><div class="note-kind">${t('noteKind')} · ${t('noteRoute')}</div><h2 class="display f-title"></h2></div>
         <div class="col">
           <div class="stats">
             <div class="stat"><span>${t('time')}</span><b class="f-time"></b></div>
@@ -213,7 +217,7 @@ export function createUI(ctx) {
     if (cur !== 'playing') return;
     const max = GAME.maxLostBarrels;
     if (e.lost > max) return; // that one ends the run
-    toast(t('toastLost', { lost: e.lost, max }), e.lost === max ? t('toastLastChance') : '');
+    toast(t('toastLost'), e.lost === max ? t('toastLastChance') : t('toastLostCount', { lost: e.lost, max }));
   });
 
   let flashAnim = null;
@@ -228,7 +232,7 @@ export function createUI(ctx) {
   // ------------------------------------------------------------------------------------------
   // result screens
   // ------------------------------------------------------------------------------------------
-  const starEls = Array.from(root.querySelectorAll('.scr-win .star'));
+  const starEls = Array.from(root.querySelectorAll('.scr-win .stamp .star'));
   events.on('finish', (e) => {
     const stars = clamp(Math.round(e.stars ?? 1), 1, 3);
     const remaining = e.remaining ?? GAME.barrelCount - (e.lost || 0);

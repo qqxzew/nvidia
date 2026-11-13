@@ -7,32 +7,33 @@ const STRINGS = {
     subtitle: 'Jízda do Světovaru',
     // {n} barrels, {time} mm:ss, {max} barrels
     mission:
-      'Dovezte {n} z náměstí Republiky do pivovaru Světovar do {time}. Smíte ztratit nejvýš {max}. Pozor v zatáčkách a na hrbolatých dlažebních kostkách!',
+      'Dovezte {n} z náměstí Republiky do pivovaru Světovar do {time}. Smíte ztratit nejvýš {max}. Pozor v zatáčkách a na hrbolatých dlažebních kostkách.',
     hintTouch: 'Levým palcem zatáčíte, pravým dáváte plyn a brzdíte.',
     hintKeys: 'Šipky nebo W A S D – řízení  ·  mezerník – brzda  ·  H – klakson  ·  P – pauza',
-    start: 'Vyjet!',
+    start: 'Vyjet',
     ticket: 'Plzeň · Světovar',
 
     // countdown
-    go: 'Jeď!',
+    go: 'Jeď',
 
     // HUD
     timeLabel: 'Zbývá',
     routeFrom: 'Náměstí',
     routeTo: 'Světovar',
-    lostCount: 'ztraceno {lost} / {max}',
+    lostCount: 'Ztraceno {lost} z {max}',
     barrelsLabel: 'Sudy',
     kmh: 'km/h',
-    warning: 'Pozor, sudy se kývají!',
-    toastLost: 'Sud spadl! ({lost}/{max})',
-    toastLastChance: 'Poslední šance!',
+    warning: 'Pozor, sudy se kývají',
+    toastLost: 'Sud spadl',
+    toastLostCount: 'ztraceno {lost} z {max}',
+    toastLastChance: 'Poslední šance',
     pause: 'Pauza',
 
     // touch controls
     left: 'Vlevo',
     right: 'Vpravo',
-    gas: 'PLYN',
-    brake: 'BRZDA',
+    gas: 'Plyn',
+    brake: 'Brzda',
     horn: 'Klakson',
 
     // pause
@@ -46,10 +47,15 @@ const STRINGS = {
     fullscreenOff: 'Okno',
 
     // results
-    winTitle: 'Sudy jsou ve Světovaru!',
-    winLine1: 'Mistrovská jízda!',
-    winLine2: 'Dobrá práce, pivo dorazilo.',
-    winLine3: 'Dovezeno, ale vyšlo to těsně.',
+    winTitle: 'Sudy jsou ve Světovaru',
+    noteKind: 'Dodací list',
+    noteRoute: 'Náměstí Republiky → Světovar',
+    stampTop: 'PIVOVAR SVĚTOVAR',
+    stampBottom: 'PLZEŇ',
+    stampFail: 'NEDODÁNO',
+    winLine1: 'Mistrovská jízda',
+    winLine2: 'Dobrá práce, pivo dorazilo',
+    winLine3: 'Dovezeno, ale vyšlo to těsně',
     time: 'Čas',
     delivered: 'Dovezeno sudů',
     again: 'Jet znovu',
@@ -57,8 +63,8 @@ const STRINGS = {
     history:
       'Pivovar Světovar (Český plzeňský pivovar) v Plzni na Borech vařil pivo v letech 1913–1933. Jeho budovy dnes slouží jako TechTower – centrum moderních technologií.',
     historyTitle: 'Z historie',
-    failTime: 'Čas vypršel…',
-    failBarrels: 'Ztratili jste příliš mnoho sudů.',
+    failTime: 'Čas vypršel',
+    failBarrels: 'Ztratili jste příliš mnoho sudů',
     tryAgain: 'Zkusit znovu',
     tipTime: 'Na rovinkách nebrzděte zbytečně a držte se středu cesty.',
     tipBarrels: 'Před zatáčkou zpomalte a vyhýbejte se kolejím a hrbolům.',
@@ -66,7 +72,7 @@ const STRINGS = {
 
     // portrait overlay
     rotate: 'Otočte telefon na šířku',
-    rotateSub: 'Hra se hraje vleže.',
+    rotateSub: 'Hra se hraje na šířku',
   },
 };
 
