@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Plzeň 1926 – Exkurze do Světovaru">
+  <defs>
+    <path id="arcTop" d="M 60 200 A 140 140 0 0 1 340 200"/>
+    <path id="arcBot" d="M 40 200 A 160 160 0 0 0 360 200"/>
+    <line id="spoke" x1="200" y1="200" x2="200" y2="102"/>
+  </defs>
+  <circle cx="200" cy="200" r="190" fill="#9a2b1c" stroke="#2b1b0e" stroke-width="6"/>
+  <circle cx="200" cy="200" r="176" fill="none" stroke="#efe4c6" stroke-width="3"/>
+  <circle cx="200" cy="200" r="118" fill="#efe4c6" stroke="#2b1b0e" stroke-width="5"/>
+
+  <!-- wagon wheel -->
+  <g stroke="#2b1b0e" stroke-width="6" stroke-linecap="round">
+    <use href="#spoke"/>
+    <use href="#spoke" transform="rotate(45 200 200)"/>
+    <use href="#spoke" transform="rotate(90 200 200)"/>
+    <use href="#spoke" transform="rotate(135 200 200)"/>
+    <use href="#spoke" transform="rotate(180 200 200)"/>
+    <use href="#spoke" transform="rotate(225 200 200)"/>
+    <use href="#spoke" transform="rotate(270 200 200)"/>
+    <use href="#spoke" transform="rotate(315 200 200)"/>
+  </g>
+  <circle cx="200" cy="200" r="100" fill="none" stroke="#2b1b0e" stroke-width="10"/>
+
+  <!-- pint (půllitr) -->
+  <g stroke="#2b1b0e" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M238 176 Q280 174 276 204 Q272 234 232 230" fill="none" stroke-width="12"/>
+    <path d="M238 176 Q280 174 276 204 Q272 234 232 230" fill="none" stroke="#efe4c6" stroke-width="3"/>
+    <path d="M158 160 L168 240 Q169 248 177 248 L223 248 Q231 248 232 240 L242 160 Z" fill="#e0a02e" stroke-width="6"/>
+    <path d="M154 164 Q150 144 170 146 Q176 130 196 138 Q212 128 226 140 Q248 138 246 164 Z" fill="#efe4c6" stroke-width="5"/>
+  </g>
+
+  <text font-family="Archivo, 'Arial Black', Arial, sans-serif" font-weight="900" font-size="30" letter-spacing="6" fill="#efe4c6" text-anchor="middle"><textPath href="#arcTop" startOffset="50%">PLZEŇ 1926</textPath></text>
+  <text font-family="Archivo, 'Arial Black', Arial, sans-serif" font-weight="800" font-size="18" letter-spacing="3" fill="#efe4c6" text-anchor="middle" dy="-8"><textPath href="#arcBot" startOffset="50%">EXKURZE DO SVĚTOVARU</textPath></text>
+</svg>
