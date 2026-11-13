@@ -209,6 +209,41 @@ function paintGlass() {
   return cv;
 }
 
+/** Radial crack web with a white impact star, on a transparent canvas (centre = impact). */
+function paintCrack() {
+  const S = 512, cv = mkCanvas(S, S), g = cv.getContext('2d'), R = rng(808);
+  const c = S / 2;
+  g.clearRect(0, 0, S, S);
+  const star = g.createRadialGradient(c, c, 0, c, c, 46);
+  star.addColorStop(0, 'rgba(255,255,255,0.95)'); star.addColorStop(0.35, 'rgba(240,250,250,0.45)'); star.addColorStop(1, 'rgba(240,250,250,0)');
+  g.fillStyle = star; g.fillRect(c - 46, c - 46, 92, 92);
+  const N = 13, rays = [];
+  for (let k = 0; k < N; k++) {
+    const a0 = (k / N) * Math.PI * 2 + (R() - 0.5) * 0.35, len = 150 + R() * 100, pts = [[c, c]];
+    let a = a0, x = c, y = c;
+    for (let s = 1; s <= 7; s++) { a += (R() - 0.5) * 0.35; const r = (len * s) / 7; x = c + Math.cos(a) * r; y = c + Math.sin(a) * r; pts.push([x, y]); }
+    rays.push(pts);
+  }
+  const stroke = (pts, w, col) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) g.lineTo(p[0], p[1]); g.stroke(); };
+  g.lineJoin = 'round'; g.lineCap = 'round';
+  for (const p of rays) { stroke(p, 3.2, 'rgba(20,30,35,0.35)'); stroke(p, 1.6, 'rgba(255,255,255,0.9)'); }
+  // concentric rings joining neighbouring rays
+  for (const ring of [1, 2, 4]) {
+    for (let k = 0; k < N; k++) {
+      if (R() < 0.25) continue;
+      const a = rays[k][ring], b = rays[(k + 1) % N][ring];
+      const m = [(a[0] + b[0]) / 2 + (R() - 0.5) * 14, (a[1] + b[1]) / 2 + (R() - 0.5) * 14];
+      stroke([a, m, b], 2.4, 'rgba(20,30,35,0.25)'); stroke([a, m, b], 1.1, 'rgba(255,255,255,0.75)');
+    }
+  }
+  // fine splinters near the centre
+  for (let k = 0; k < 40; k++) {
+    const a = R() * Math.PI * 2, r0 = 10 + R() * 40, r1 = r0 + 6 + R() * 18;
+    stroke([[c + Math.cos(a) * r0, c + Math.sin(a) * r0], [c + Math.cos(a + 0.1) * r1, c + Math.sin(a + 0.1) * r1]], 1, 'rgba(255,255,255,0.7)');
+  }
+  return cv;
+}
+
 function paintGlow() {
   const S = 128, cv = mkCanvas(S, S), g = cv.getContext('2d');
   const gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
@@ -227,6 +262,7 @@ function getTex3(renderer) {
     floor: canvasTex(paintFloor(), { s: true, t: true, aniso }),
     glass: canvasTex(paintGlass()),
     glow: canvasTex(paintGlow()),
+    crack: canvasTex(paintCrack()),
   };
   return TEX;
 }
@@ -393,7 +429,8 @@ export function buildHall(ctx) {
     strip: new THREE.MeshLambertMaterial({ map: tex.strip, vertexColors: true }),
     floor: new THREE.MeshLambertMaterial({ map: tex.floor, vertexColors: true }),
     glass: new THREE.MeshLambertMaterial({ color: 0xa9bccb, map: tex.glass, transparent: true, depthWrite: false, side: THREE.DoubleSide, emissive: 0x0c1422 }),
-    shard: new THREE.MeshBasicMaterial({ color: 0xc4d6e8, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false }),
+    shard: new THREE.MeshStandardMaterial({ color: 0xcdeee6, roughness: 0.12, metalness: 0.0, transparent: true, opacity: 0.78, side: THREE.DoubleSide, depthWrite: false, emissive: 0x1d3a36, emissiveIntensity: 0.7 }),
+    crack: new THREE.MeshBasicMaterial({ map: tex.crack, color: 0xeaf6f4, transparent: true, depthWrite: false, side: THREE.DoubleSide }),
     sky: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }),
     backdrop: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, fog: false }),
     shaft: new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }),
@@ -861,46 +898,225 @@ export function buildHall(ctx) {
   bars.name = 'hall-casements'; bars.frustumCulled = false; bars.castShadow = true; bars.userData.dynamic = true;
   root.add(bars);
 
+
+  // ---- crack web overlay (crackGlass): one shared texture, one instanced quad per window
+  const crackGeo = new THREE.PlaneGeometry(1, 1);
+  const cracks = new THREE.InstancedMesh(crackGeo, mats.crack, frames.length);
+  cracks.name = 'hall-cracks'; cracks.frustumCulled = false; cracks.renderOrder = 5; cracks.userData.dynamic = true;
+  cracks.raycast = () => {};
+  root.add(cracks);
+
+  // ---- shatter: pooled shards (window-local physics) + glitter burst
+  const SPW = 50, STUCK = 6, NSH = frames.length * SPW;
   const shardGeo = new THREE.BufferGeometry();
-  shardGeo.setAttribute('position', new THREE.Float32BufferAttribute([-0.07, 0, 0.05, 0.08, 0, 0.035, 0.0, 0, -0.1], 3));
+  shardGeo.setAttribute('position', new THREE.Float32BufferAttribute([-0.06, 0, 0.04, 0.07, 0, 0.03, 0.01, 0, -0.08], 3));
   shardGeo.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3));
-  const SHARDS_PER = 13;
-  const shards = new THREE.InstancedMesh(shardGeo, mats.shard, frames.length * SHARDS_PER);
+  const shards = new THREE.InstancedMesh(shardGeo, mats.shard, NSH);
   shards.name = 'hall-shards'; shards.frustumCulled = false; shards.renderOrder = 4; shards.userData.dynamic = true;
+  shards.raycast = () => {};
   root.add(shards);
-  const shardMats = [];
-  {
-    const sr = rng(66), e = new THREE.Euler(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
-    for (const f of frames) {
-      const list = [];
-      for (let k = 0; k < SHARDS_PER; k++) {
-        if (k < 4) { p.set((sr() - 0.5) * 1.3, SILL + 0.004, -0.07 + sr() * 0.3); e.set(0, sr() * 6.28, 0); s.set(0.6 + sr() * 0.8, 1, 0.6 + sr() * 0.8); }
-        else if (k < 10) { p.set((sr() - 0.5) * 2.0, 0.006, -0.25 - sr() * 1.4); e.set(0, sr() * 6.28, 0); s.set(0.5 + sr() * 1.2, 1, 0.5 + sr() * 1.2); }
-        else if (k < 12) { const side = k === 10 ? -1 : 1; p.set(side * (WR - 0.12), SILL + 0.15, GLASS_D); e.set(-Math.PI / 2, 0, side * 0.3); s.set(1.4, 1, 2.2 + sr()); }
-        else { p.set(WR - 0.2, TOP - 0.15, GLASS_D); e.set(Math.PI / 2, 0, 2.6); s.set(1.6, 1, 2.0); }
-        q.setFromEuler(e);
-        list.push(f.m.clone().multiply(new THREE.Matrix4().compose(p, q, s)));
-      }
-      shardMats.push(list);
+  const sP = new Float32Array(NSH * 3), sV = new Float32Array(NSH * 3), sA = new Float32Array(NSH * 3), sW = new Float32Array(NSH * 3);
+  const sS = new Float32Array(NSH * 3), sOff = new Float32Array(NSH), sB = new Float32Array(NSH), sSt = new Uint8Array(NSH);
+  const moving = new Int16Array(frames.length);
+  const winInv = frames.map((f) => f.m.clone().invert());
+  const winOrigin = frames.map((f) => new THREE.Vector3().setFromMatrixPosition(f.m));
+  const impact = new Float32Array(frames.length * 2);
+  const cracked = new Uint8Array(frames.length);
+
+  const GL = 36, NGL = frames.length * GL, GLIFE = 0.4;
+  const gPos = new Float32Array(NGL * 3), gCol = new Float32Array(NGL * 3), gVel = new Float32Array(NGL * 3), gLife = new Float32Array(NGL);
+  const gGeo = new THREE.BufferGeometry();
+  gGeo.setAttribute('position', new THREE.BufferAttribute(gPos, 3).setUsage(THREE.DynamicDrawUsage));
+  gGeo.setAttribute('color', new THREE.BufferAttribute(gCol, 3).setUsage(THREE.DynamicDrawUsage));
+  const glitter = new THREE.Points(gGeo, new THREE.PointsMaterial({ size: 0.045, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  glitter.name = 'hall-glitter'; glitter.frustumCulled = false; glitter.renderOrder = 6; glitter.userData.dynamic = true;
+  glitter.raycast = () => {};
+  root.add(glitter);
+  let glitterLive = 0;
+
+  const _e = new THREE.Euler(0, 0, 0, 'XZY'), _qq = new THREE.Quaternion(), _pp = new THREE.Vector3(), _ss = new THREE.Vector3();
+  const _lm = new THREE.Matrix4(), _wm = new THREE.Matrix4(), _cc = new THREE.Color(), _tv = new THREE.Vector3();
+  const SR = rng(4242);
+  const TINT = [0.86, 1.0, 0.97];
+
+  function writeShard(i) {
+    const w = (i / SPW) | 0, j = i * 3;
+    _e.set(sA[j], sA[j + 1], sA[j + 2]); _qq.setFromEuler(_e);
+    _pp.set(sP[j], sP[j + 1], sP[j + 2]); _ss.set(sS[j], sS[j + 1], sS[j + 2]);
+    _lm.compose(_pp, _qq, _ss);
+    _wm.multiplyMatrices(frames[w].m, _lm);
+    shards.setMatrixAt(i, _wm);
+  }
+  function shardColor(i, b) { _cc.setRGB(TINT[0] * b, TINT[1] * b, TINT[2] * b); shards.setColorAt(i, _cc); }
+  function hideWindowShards(w) {
+    for (let k = 0; k < SPW; k++) { const i = w * SPW + k; sSt[i] = 0; shards.setMatrixAt(i, ZERO); }
+    moving[w] = 0;
+  }
+  const floorAt = (u, w) => (Math.abs(u) < 0.9 && w > -0.09 && w < 0.68 ? SILL : 0);
+  const nearestPi = (a) => Math.round(a / Math.PI) * Math.PI;
+
+  // jagged leftovers stuck in the frame: [u, v, tip direction u, tip direction v]
+  const STUCK_AT = [[-0.72, 1.05, 1, 0.3], [0.72, 1.3, -1, 0.2], [-0.72, 2.45, 1, -0.2], [0.72, 3.25, -1, -0.4], [-0.25, 3.52, 0.1, -1], [0.3, 0.98, -0.1, 1]];
+
+  function shatter(w) {
+    const iu = impact[w * 2], iv = impact[w * 2 + 1];
+    const base = w * SPW;
+    for (let k = 0; k < STUCK; k++) {
+      const i = base + k, j = i * 3, [u, v, du, dv] = STUCK_AT[k];
+      sP[j] = u; sP[j + 1] = v; sP[j + 2] = GLASS_D;
+      sA[j] = Math.PI / 2; sA[j + 1] = Math.atan2(-du, dv) + (SR() - 0.5) * 0.5; sA[j + 2] = 0;
+      sS[j] = 0.9 + SR() * 0.6; sS[j + 1] = 1; sS[j + 2] = 1.6 + SR() * 1.2;
+      sSt[i] = 2; writeShard(i); shardColor(i, 0.9 + SR() * 0.4);
     }
+    // flying pieces: one per small pane, the rest around the impact point
+    const CU = 4, CV = 7, cw = (2 * WR) / CU, ch = (TOP - SILL) / CV;
+    for (let k = STUCK; k < SPW; k++) {
+      const i = base + k, j = i * 3, n = k - STUCK;
+      let u, v;
+      if (n < CU * CV) { u = -WR + cw * ((n % CU) + 0.5) + (SR() - 0.5) * cw * 0.6; v = SILL + ch * (((n / CU) | 0) + 0.5) + (SR() - 0.5) * ch * 0.6; }
+      else { const a = SR() * Math.PI * 2, r = 0.05 + SR() * 0.45; u = THREE.MathUtils.clamp(iu + Math.cos(a) * r, -0.7, 0.7); v = THREE.MathUtils.clamp(iv + Math.sin(a) * r, SILL + 0.1, TOP - 0.1); }
+      let du = u - iu, dv = v - iv; const dist = Math.hypot(du, dv) || 0.01; du /= dist; dv /= dist;
+      const sz = (0.55 + 0.7 * Math.min(1, dist / 0.8)) * (0.8 + SR() * 0.6);
+      sP[j] = u; sP[j + 1] = v; sP[j + 2] = GLASS_D + (SR() - 0.5) * 0.02;
+      sA[j] = Math.PI / 2 + (SR() - 0.5) * 0.3; sA[j + 1] = SR() * Math.PI * 2; sA[j + 2] = (SR() - 0.5) * 0.3;
+      sS[j] = sz * (1.0 + SR() * 0.8); sS[j + 1] = 1; sS[j + 2] = sz * (1.0 + SR() * 0.8);
+      const radial = (0.4 + SR() * 1.2) * (1.3 - Math.min(dist, 1));
+      const inward = SR() < 0.82;
+      sV[j] = du * radial; sV[j + 1] = dv * radial + SR() * 0.8; sV[j + 2] = inward ? -(1.8 + SR() * 3.0) : 0.5 + SR() * 1.5;
+      sW[j] = (SR() - 0.5) * 26; sW[j + 1] = (SR() - 0.5) * 20; sW[j + 2] = (SR() - 0.5) * 26;
+      sOff[i] = 0.002 + SR() * 0.004; sB[i] = 0.7 + SR() * 0.7;
+      sSt[i] = 1; writeShard(i); shardColor(i, sB[i]);
+    }
+    moving[w] = SPW - STUCK;
+    shards.instanceMatrix.needsUpdate = true; if (shards.instanceColor) shards.instanceColor.needsUpdate = true;
+    // glitter burst from the impact point
+    const o = winOrigin[w];
+    for (let k = 0; k < GL; k++) {
+      const g = w * GL + k, j = g * 3;
+      _tv.set(iu + (SR() - 0.5) * 0.3, iv + (SR() - 0.5) * 0.3, GLASS_D).applyMatrix4(frames[w].m);
+      gPos[j] = _tv.x; gPos[j + 1] = _tv.y; gPos[j + 2] = _tv.z;
+      const a = SR() * Math.PI * 2, sp = 1 + SR() * 3;
+      _tv.set(Math.cos(a) * sp, Math.sin(a) * sp, -(1 + SR() * 3)).applyMatrix4(frames[w].m).sub(o);
+      gVel[j] = _tv.x; gVel[j + 1] = _tv.y; gVel[j + 2] = _tv.z;
+      gLife[g] = GLIFE * (0.6 + SR() * 0.4);
+    }
+    glitterLive = 1;
+  }
+
+  function stepShards(dt) {
+    let dirty = false;
+    for (let w = 0; w < frames.length; w++) {
+      if (moving[w] <= 0) continue;
+      dirty = true;
+      for (let k = STUCK; k < SPW; k++) {
+        const i = w * SPW + k;
+        if (sSt[i] !== 1) continue;
+        const j = i * 3;
+        sV[j + 1] -= 9.81 * dt;
+        sP[j] += sV[j] * dt; sP[j + 1] += sV[j + 1] * dt; sP[j + 2] += sV[j + 2] * dt;
+        const u = sP[j], z = sP[j + 2];
+        if (z > -0.02 && z < 0.62) {                       // inside the reveal: jambs + lintel
+          if (Math.abs(u) > 0.76) { sP[j] = Math.sign(u) * 0.76; sV[j] = -sV[j] * 0.3; }
+          if (sP[j + 1] > TOP - 0.04) { sP[j + 1] = TOP - 0.04; sV[j + 1] = -Math.abs(sV[j + 1]) * 0.3; }
+        }
+        const fy = floorAt(sP[j], sP[j + 2]) + sOff[i];
+        if (sP[j + 1] <= fy) {
+          sP[j + 1] = fy;
+          if (sV[j + 1] < -0.7) {                          // bounce
+            sV[j + 1] = -sV[j + 1] * 0.22; sV[j] *= 0.55; sV[j + 2] *= 0.55;
+            sW[j] *= 0.45; sW[j + 1] *= 0.6; sW[j + 2] *= 0.45;
+          } else {                                         // slide + lie flat
+            sV[j + 1] = 0;
+            const fr = Math.max(0, 1 - 7 * dt); sV[j] *= fr; sV[j + 2] *= fr;
+            sW[j] = 0; sW[j + 2] = 0; sW[j + 1] *= fr;
+            const lf = Math.min(1, dt * 14);
+            sA[j] += (nearestPi(sA[j]) - sA[j]) * lf; sA[j + 2] += (nearestPi(sA[j + 2]) - sA[j + 2]) * lf;
+            if (Math.abs(sV[j]) + Math.abs(sV[j + 2]) < 0.03 && Math.abs(sA[j] - nearestPi(sA[j])) + Math.abs(sA[j + 2] - nearestPi(sA[j + 2])) < 0.02) {
+              sA[j] = nearestPi(sA[j]); sA[j + 2] = nearestPi(sA[j + 2]);
+              sSt[i] = 2; moving[w]--;
+            }
+          }
+        }
+        sA[j] += sW[j] * dt; sA[j + 1] += sW[j + 1] * dt; sA[j + 2] += sW[j + 2] * dt;
+        writeShard(i);
+        // glint while tumbling: brighter when the face turns up toward the moon / bulbs
+        shardColor(i, sB[i] * (0.65 + 0.7 * Math.abs(Math.cos(sA[j]) * Math.cos(sA[j + 2]))));
+      }
+    }
+    if (dirty) { shards.instanceMatrix.needsUpdate = true; if (shards.instanceColor) shards.instanceColor.needsUpdate = true; }
+  }
+
+  function stepGlitter(dt) {
+    if (!glitterLive) return;
+    let live = 0;
+    for (let g = 0; g < NGL; g++) {
+      const j = g * 3;
+      if (gLife[g] <= 0) { if (gCol[j] !== 0) { gCol[j] = gCol[j + 1] = gCol[j + 2] = 0; } continue; }
+      live++;
+      gLife[g] -= dt;
+      gVel[j + 1] -= 4.9 * dt;
+      gPos[j] += gVel[j] * dt; gPos[j + 1] += gVel[j + 1] * dt; gPos[j + 2] += gVel[j + 2] * dt;
+      const k = Math.max(0, gLife[g] / GLIFE); const b = k * k * 1.6;
+      gCol[j] = 0.8 * b; gCol[j + 1] = 0.95 * b; gCol[j + 2] = b;
+    }
+    gGeo.attributes.position.needsUpdate = true; gGeo.attributes.color.needsUpdate = true;
+    glitterLive = live;
+  }
+
+  function clearGlitter(w) {
+    for (let k = 0; k < GL; k++) { const g = w * GL + k, j = g * 3; gLife[g] = 0; gCol[j] = gCol[j + 1] = gCol[j + 2] = 0; }
+    gGeo.attributes.color.needsUpdate = true;
   }
 
   const intact = frames.map(() => true);
   const idxOf = new Map(frames.map((f, i) => [f.id, i]));
-  function applyGlass(i) {
-    const ok = intact[i];
-    glass.setMatrixAt(i, ok ? frames[i].m : ZERO);
-    bars.setMatrixAt(i, ok ? frames[i].m : ZERO);
-    for (let k = 0; k < SHARDS_PER; k++) shards.setMatrixAt(i * SHARDS_PER + k, ok ? ZERO : shardMats[i][k]);
+  function setCrack(i, on) {
+    if (!on) { cracks.setMatrixAt(i, ZERO); cracked[i] = 0; cracks.instanceMatrix.needsUpdate = true; return; }
+    const s = 1.1 + SR() * 0.5;
+    _pp.set(impact[i * 2], impact[i * 2 + 1], GLASS_D - 0.012);
+    _qq.setFromAxisAngle(_zAxis, SR() * Math.PI * 2);
+    _ss.set(SR() < 0.5 ? -s : s, s, 1);
+    _lm.compose(_pp, _qq, _ss);
+    _wm.multiplyMatrices(frames[i].m, _lm);
+    cracks.setMatrixAt(i, _wm); cracked[i] = 1;
+    cracks.instanceMatrix.needsUpdate = true;
   }
-  function flushGlass() { glass.instanceMatrix.needsUpdate = true; bars.instanceMatrix.needsUpdate = true; shards.instanceMatrix.needsUpdate = true; }
+  function setImpact(i, x, y, z) {
+    if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+      _tv.set(x, y, z).applyMatrix4(winInv[i]);
+      impact[i * 2] = THREE.MathUtils.clamp(_tv.x, -0.6, 0.6); impact[i * 2 + 1] = THREE.MathUtils.clamp(_tv.y, SILL + 0.25, TOP - 0.3);
+    } else { impact[i * 2] = (SR() - 0.5) * 0.8; impact[i * 2 + 1] = 1.4 + SR() * 0.8; }
+  }
+  /** First crowbar blow: radial crack web around the impact point (world coords; optional). */
+  function crackGlass(id, x, y, z) {
+    const i = idxOf.get(id);
+    if (i === undefined || !intact[i]) return;
+    setImpact(i, x, y, z); setCrack(i, true);
+  }
   function setGlass(id, ok) {
     const i = idxOf.get(id);
     if (i === undefined) return;
-    intact[i] = !!ok; applyGlass(i); flushGlass();
+    ok = !!ok;
+    if (ok === intact[i]) return;
+    intact[i] = ok;
+    glass.setMatrixAt(i, ok ? frames[i].m : ZERO);
+    bars.setMatrixAt(i, ok ? frames[i].m : ZERO);
+    glass.instanceMatrix.needsUpdate = true; bars.instanceMatrix.needsUpdate = true;
+    setCrack(i, false);
+    if (ok) { hideWindowShards(i); clearGlitter(i); shards.instanceMatrix.needsUpdate = true; }
+    else { if (!cracked[i] && impact[i * 2 + 1] === 0) setImpact(i); shatter(i); impact[i * 2 + 1] = 0; }
   }
-  function resetGlass() { for (let i = 0; i < frames.length; i++) { intact[i] = true; applyGlass(i); } flushGlass(); }
+  function resetGlass() {
+    for (let i = 0; i < frames.length; i++) {
+      intact[i] = true; glass.setMatrixAt(i, frames[i].m); bars.setMatrixAt(i, frames[i].m);
+      setCrack(i, false); hideWindowShards(i); clearGlitter(i); impact[i * 2] = 0; impact[i * 2 + 1] = 0;
+    }
+    glitterLive = 0;
+    glass.instanceMatrix.needsUpdate = true; bars.instanceMatrix.needsUpdate = true; shards.instanceMatrix.needsUpdate = true; cracks.instanceMatrix.needsUpdate = true;
+  }
+  for (let i = 0; i < NSH; i++) shardColor(i, 1);   // allocate instanceColor before the first render
   resetGlass();
+
 
   // -------------------------------------------------------------------- barrels
   const proto = createBarrelMesh(ctx);
@@ -1014,6 +1230,8 @@ export function buildHall(ctx) {
 
   function update(dt, t) {
     flywheel.rotation.z = -t * 0.45;
+    const h = Math.min(dt || 0, 0.05);
+    if (h > 0) { stepShards(h); stepGlitter(h); }
     for (const l of lamps) {
       l.gr.rotation.x = 0.02 * Math.sin(t * 0.83 + l.phase);
       l.gr.rotation.z = 0.015 * Math.sin(t * 0.61 + l.phase * 1.3);
@@ -1045,6 +1263,7 @@ export function buildHall(ctx) {
     setBarrels,
     setGlass,
     resetGlass,
+    crackGlass,
     update,
     root,
     lights: { hemi, moon, bulbs: lamps.map((l) => l.light) },

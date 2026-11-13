@@ -151,6 +151,8 @@ function addScore(delta, id, p) {
 }
 
 events.on('gangster:appear', ({ id, windowId }) => actorWindow.set(id, windowId));
+// first crowbar blow cracks the pane; the break itself (setGlass) shatters it — both animated by the hall
+events.on('gangster:knock', ({ windowId, x, y, z }) => hall.crackGlass?.(windowId, x, y, z));
 
 events.on('gangster:grab', () => {
   G.onShelf = Math.max(0, G.onShelf - 1); G.carried++;
