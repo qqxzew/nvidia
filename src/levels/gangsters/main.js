@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+// Styles imported here, in the level's entry chunk: imported only from ui.js, the production build moved them
+// into a shared chunk whose CSS was never linked on ?level=3 (unstyled HUD, giant crosshair).
+import '../../ui/ui.css';
+import './ui.css';
 import { CONFIG3 } from './config.js';
 import { createEvents } from '../../core/events.js';
 import { createGrading } from '../../fx/grading.js';
