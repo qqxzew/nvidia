@@ -1,0 +1,84 @@
+/* Level 2 UI: only what differs from level 1 (src/ui/ui.css provides plates, paper, buttons, stamp, toasts). */
+
+.plz2 { pointer-events: none; z-index: 5; }
+.plz2.off { display: none; }
+.plz2 .btn, .plz2 .btn-pause, .plz2 input { pointer-events: auto; }
+.plz2 .scr { pointer-events: none; }
+.plz2 .scr.on { pointer-events: auto; }
+
+/* briefing */
+.brief-panel { width: min(720px, 100%); grid-template-columns: .9fr 1.25fr; gap: 8px 28px; padding: 20px 28px; }
+.brief-panel .kicker { font-size: 15px; color: var(--ink-2); margin-bottom: 4px; }
+.brief-panel .title { font-size: 34px; line-height: 1.04; white-space: normal; margin-bottom: 8px; }
+.brief-panel .sub { font-size: 17px; }
+.brief-panel .story { margin: 0 0 8px; font-size: 16px; line-height: 1.34; }
+.brief-panel .mission { font-size: 16px; line-height: 1.34; margin: 0 0 8px; }
+.brief-panel .hint { font-size: 14px; line-height: 1.32; padding-top: 8px; }
+.brief-panel .btn { margin-top: 16px; }
+.brief-panel .btn.to-title { margin-top: 8px; }
+
+/* HUD plates */
+.plz2 .hud-l { gap: 6px; }
+.p-l2 { padding: 6px 10px 6px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.l2-barrels { display: flex; gap: 6px; }
+.l2-barrels span { display: block; transform-origin: 50% 100%; }
+.l2-barrels svg { width: 18px; height: 22px; }
+.l2-barrels .empty .b-body { fill: none; stroke: var(--cream-3); stroke-dasharray: 2 2; }
+.l2-barrels .empty .b-stave, .l2-barrels .empty .b-hoop { stroke: none; }
+.l2-barrels .pop { animation: l2pop .5s var(--ease); }
+@keyframes l2pop { 0% { transform: scale(1.7); } 100% { transform: scale(1); } }
+.l2-bites { display: flex; gap: 6px; }
+.l2-bites span { display: block; }
+.l2-bites svg { width: 24px; height: 15px; }
+.rat-body, .rat-ear { fill: currentColor; }
+.rat-tail { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+.rat-eye { fill: var(--enamel); }
+.l2-bites .ok { color: var(--cream-2); }
+.l2-bites .bit { color: #e0533a; }
+.l2-bites .bit .rat-eye { fill: #fff; }
+.p-l2.hot { border-color: #e0533a; }
+
+.l2-guide {
+  position: absolute; top: max(var(--edge), var(--st)); left: 50%; width: 52px; height: 52px;
+  margin-left: -26px; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s var(--ease);
+}
+.l2-guide.on { opacity: 1; }
+.l2-arrow { width: 32px; height: 32px; color: var(--cream); will-change: transform; transition: transform .1s linear; }
+.l2-arrow svg { width: 100%; height: 100%; }
+.l2-toast-wrap { top: calc(max(var(--edge), var(--st)) + 64px); }
+
+/* floating stick */
+.l2-ctl { position: absolute; inset: 0; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .2s var(--ease), visibility 0s linear .2s; color: var(--cream); }
+.l2-ctl.on { opacity: 1; visibility: visible; transition-delay: 0s; }
+.l2-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 55%; pointer-events: none; touch-action: none; }
+.l2-ctl.on .l2-zone { pointer-events: auto; }
+.l2-stick, .l2-ghost { --R: 56px; position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; pointer-events: none; transition: opacity .15s var(--ease); }
+.l2-stick.on { opacity: 1; }
+.l2-ghost { --R: 52px; left: 16%; top: 66%; }
+.l2-ghost.on { opacity: .55; }
+.l2-ring { position: absolute; left: calc(var(--R) * -1); top: calc(var(--R) * -1); width: calc(var(--R) * 2); height: calc(var(--R) * 2);
+  border-radius: 50%; background: rgba(29, 42, 35, .38); border: 2px solid var(--rim); }
+.l2-knob { position: absolute; left: -26px; top: -26px; width: 52px; height: 52px; border-radius: 50%;
+  background: var(--enamel-a); border: 2px solid var(--cream-2); will-change: transform; }
+.l2-ghost .l2-knob { transform: none; }
+
+@media (max-height: 400px) {
+  .brief-panel { padding: 16px 24px; gap: 4px 24px; }
+  .brief-panel .title { font-size: 30px; margin-bottom: 4px; }
+  .brief-panel .fan { height: 22px; width: 64px; }
+  .brief-panel .story, .brief-panel .mission { font-size: 15px; line-height: 1.3; margin-bottom: 6px; }
+  .brief-panel .hint { font-size: 13.500px; padding-top: 6px; }
+  .brief-panel .btn { min-height: 48px; margin-top: 10px; }
+  .brief-panel .btn.to-title { min-height: 40px; margin-top: 6px; }
+  .plz2 .res-panel { gap: 4px 24px; }
+  .plz2 .res-panel .head { min-height: 80px; }
+  .plz2 .stat { padding: 2px 0; font-size: 16px; }
+  .plz2 .stat b { font-size: 20px; }
+  .plz2 .stats { margin-bottom: 8px; }
+  .plz2 .card p { font-size: 14.500px; line-height: 1.32; }
+  .plz2 .card { padding: 8px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l2-barrels .pop { animation: none; }
+}

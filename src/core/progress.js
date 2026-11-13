@@ -3,7 +3,7 @@ const KEY = 'plzen1926.progress.v1';
 
 export const LEVELS = [
   { id: 1, key: 'level1', playable: true },
-  { id: 2, key: 'level2', playable: false }, // in preparation
+  { id: 2, key: 'level2', playable: true },
 ];
 
 function load() {
@@ -22,7 +22,7 @@ export const progress = {
   isUnlocked(id) { return data.started && id <= Math.max(1, data.reached); },
   /** the level "Pokračovat" should open */
   nextLevel() {
-    const next = LEVELS.find((l) => l.playable && l.id > data.reached) || LEVELS.filter((l) => l.playable).pop();
+    const next = LEVELS.find((l) => l.playable && l.id >= Math.max(1, data.reached)) || LEVELS.filter((l) => l.playable).pop();
     return next.id;
   },
   newGame() { data = { started: true, reached: 1, best: data.best }; save(); },

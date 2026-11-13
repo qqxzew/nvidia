@@ -11,3 +11,12 @@
 - [ ] Test on a real mid-range phone (fps, touch feel). Only checked in desktop Chromium at 844×390.
 - [ ] Listen to and tune the audio (procedural; levels never heard).
 - [ ] Fact-check the history card (Světovar 1913–1933, today TechTower) — `src/ui/i18n.js`, key `history`.
+
+# Backlog — level 2 "Válení sudů ve sklepě"
+- [ ] Test on a real phone: fps (15 draw calls / 62k tris on q=low), touch stick feel, cellar build time
+      (~0.5 s desktop, guessed 1.5–2 s on a mid-range phone; a "Scházíme do sklepa…" plate covers it).
+- [ ] Listen to the procedural cellar audio (never heard by ear).
+- [ ] Tune difficulty with real players: bot finishes in ~101 s, limit 4:00, 3★ ≤ 2:30 & 0 bites.
+      An idle player collects ~2 bites in 4 min (rats cross the player's path every 8–16 s).
+- [ ] Camera at the very back of a bay (start of a push) is still close (~2 m); acceptable, could be nicer.
+- [ ] Fact-check the lager-cellar history card (`src/ui/i18n.js`, `l2History*`).

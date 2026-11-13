@@ -18,6 +18,7 @@ import { createAutopilot } from './debug/autopilot.js';
 import { createTitle } from './ui/title.js';
 import { createBirds } from './fx/birds.js';
 import { progress } from './core/progress.js';
+import { getLang } from './ui/i18n.js';
 
 // ---------------------------------------------------------------------------------------------
 // Debug URL params:  ?autostart=1  ?s=600 (start arc length)  ?cam=orbit  ?view=truck|square|svetovar|city
@@ -151,6 +152,49 @@ events.on('ui:resume', () => { if (G.state === 'paused') setState('playing'); })
 events.on('ui:menu', () => { resetRun(); setState('menu'); });      // level 1 briefing
 events.on('ui:title', () => { resetRun(); setState('title'); });    // main menu
 events.on('finish', (e) => progress.complete(1, e));
+
+// --- level 2 "Válení sudů ve sklepě": its own scene, rendered through the same renderer + grading -------
+let L2 = null, inL2 = false, l2Loading = false;
+async function openLevel2() {
+  if (inL2 || l2Loading) return;
+  l2Loading = true;
+  let veil = null;
+  try {
+    if (!L2) {
+      // building the cellar (geometry + light bake) blocks the main thread for ~0.5-2 s: show a plate first
+      veil = document.createElement('div');
+      veil.className = 'plz-loading';
+      veil.textContent = { cs: 'Scházíme do sklepa…', en: 'Going down to the cellar…', de: 'Hinab in den Keller…' }[getLang()] || 'Scházíme do sklepa…';
+      veil.style.cssText = 'position:fixed;inset:0;display:grid;place-items:center;z-index:50;background:#0d0906;'
+        + 'color:#efe4c6;font:500 22px "Alegreya Sans",system-ui,sans-serif;letter-spacing:.02em;';
+      document.body.appendChild(veil);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const m = await import('./level2/level2.js');
+      L2 = m.createLevel2({ THREE, renderer, isMobile, quality, params, onExit: exitLevel2 });
+      window.__game.L2 = L2;
+      try { renderer.compile(L2.scene, L2.camera); } catch (e) { console.warn('[level2] precompile failed', e); }
+    }
+    resetRun();
+    setState('level2');            // hides every level 1 / main menu screen, silences level 1 audio
+    inL2 = true;
+    resize();
+    L2.enter();
+  } catch (e) { console.error('[level2] failed to open', e); }
+  finally {
+    l2Loading = false;
+    if (veil) { veil.style.transition = 'opacity .5s'; veil.style.opacity = '0'; setTimeout(() => veil.remove(), 520); }
+  }
+}
+function exitLevel2() {
+  if (!inL2) return;
+  inL2 = false;
+  L2.exit();
+  if (grading) { grading.material.uniforms.uFlash.value = 0; grading.material.uniforms.uFade.value = 0; }
+  resetRun();
+  setState('title');
+}
+// open a level from the main menu / the level 1 win screen
+events.on('ui:level', ({ id } = {}) => { if (id === 2) openLevel2(); else events.emit('ui:menu'); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'playing') setState('paused'); });
 
 events.on('barrel:lost', (e) => {
@@ -182,6 +226,7 @@ function resize() {
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
+  L2?.resize(innerWidth, innerHeight);
   if (grading) { const s = renderer.getDrawingBufferSize(new THREE.Vector2()); grading.setSize(s.x, s.y); }
 }
 addEventListener('resize', resize);
@@ -211,14 +256,17 @@ const birds = createBirds(ctx);
 let menuFade = 0;
 events.on('state', (e) => { if (e.state === 'title') rig.titleReset(); });
 resetRun();
-setState(VIEW || params.get('autostart') || params.get('s') ? 'menu' : 'title');
-if (params.get('autostart')) startRun();
+const LEVEL_PARAM = Number(params.get('level')) || 1;
+setState(VIEW || params.get('autostart') || params.get('s') || LEVEL_PARAM === 2 ? 'menu' : 'title');
+if (LEVEL_PARAM === 2) openLevel2();
+else if (params.get('autostart')) startRun();
 
 renderer.setAnimationLoop(() => {
   const now = performance.now();
   const dt = Math.min((now - lastNow) / 1000, 1 / 20);
   lastNow = now; elapsed += dt;
   const t = elapsed;
+  if (inL2) { frameLevel2(dt, t); return; }
   ui.update?.(dt);
 
   const playing = G.state === 'playing';
@@ -322,6 +370,18 @@ renderer.setAnimationLoop(() => {
   if (grading) grading.render(scene, camera, t); else renderer.render(scene, camera);
   adaptResolution(dt);
 });
+
+function frameLevel2(dt, t) {
+  L2.frame(dt, t);
+  if (grading) {
+    const u = grading.material.uniforms, g = L2.grade;
+    u.uSepia.value = g.sepia; u.uVignette.value = g.vignette; u.uContrast.value = g.contrast;
+    u.uExposure.value = g.exposure; u.uGrain.value = g.grain; u.uFade.value = g.fade || 0;
+    u.uFlash.value = g.flash || 0; u.uSun.value.z = 0;
+    grading.render(L2.scene, L2.camera, t);
+  } else renderer.render(L2.scene, L2.camera);
+  adaptResolution(dt);
+}
 
 window.__game.G = G;
 window.__game.controller = controller;
