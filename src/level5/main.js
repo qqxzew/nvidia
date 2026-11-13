@@ -1,3 +1,4 @@
+import { progress } from '../core/progress.js';
 // Level 5 "Šílená stáčírna" — the racking hall conveyor puzzle (owner: lead). Loaded by src/boot.js on ?level=5.
 // Wires: renderer + fixed top-down camera + grading, hall + belts + barrels (art), line simulation (gameplay),
 // UI + audio (ui). See docs/LEVEL5.md for the contract.
@@ -104,7 +105,7 @@ events.on('ui:resume', () => { if (G.state === 'paused') setState('playing'); })
 events.on('ui:menu', () => { resetRun(); setState('menu'); });
 events.on('ui:switch', ({ id }) => { if ((G.state === 'playing' || G.state === 'countdown') && line) line.toggle(id); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'playing') setState('paused'); });
-events.on('finish', (e) => { if (G.state === 'playing') { G.result = e; setState('won'); } });
+events.on('finish', (e) => { if (G.state === 'playing') { G.result = e; try { progress.complete(5, { stars: e?.stars || 1, time: e?.time || 0 }); } catch {} setState('won'); } });
 events.on('fail', (e) => { if (G.state === 'playing' && !god) { G.result = e; setState('lost'); } });
 
 // --- resize & adaptive resolution ----------------------------------------------------------------
