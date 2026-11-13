@@ -11,7 +11,7 @@
 import '../ui/ui.css';
 import './ui5.css';
 import { ICON, NEEDLE, stamp } from '../ui/icons.js';
-import { fmtTime, barrels as barrelsText } from '../ui/i18n.js';
+import { fmtTime, barrels as barrelsText, t as tMain } from '../ui/i18n.js';
 import { settings, saveSettings } from '../ui/shared.js';
 import { NEXT_STATION } from './config.js';
 import { t } from './i18n.js';
@@ -147,6 +147,7 @@ export function createUI5(ctx) {
           <div class="title display">${titleWords.join(' ')} <em>${titleLast}</em></div>
           <div class="sub">${t('subtitle')}</div>
           <button class="btn go" type="button">${t('start')}</button>
+          <button class="btn alt sm to-title" type="button">${tMain('menu')}</button>
         </div>
         <div class="col">
           <div class="goal display">${t('goal', { n: barrelsText(QUOTA) })}</div>
@@ -165,6 +166,7 @@ export function createUI5(ctx) {
         <div class="col">
           <button class="btn resume" type="button">${t('resume')}</button>
           <button class="btn alt restart" type="button">${t('restart')}</button>
+          <button class="btn alt to-title" type="button">${tMain('menu')}</button>
         </div>
         <div class="col">
           <div class="setting"><div class="setting-head"><span>${t('volume')}</span><span class="val vol-val"></span></div>
@@ -187,7 +189,7 @@ export function createUI5(ctx) {
             <div class="stat"><span>${t('rSpill')}</span><b class="r-spill"></b></div>
             <div class="stat"><span>${t('time')}</span><b class="r-time"></b></div>
           </div>
-          <button class="btn again" type="button">${t('again')}</button>
+          <div class="btn-row"><button class="btn again" type="button">${t('again')}</button><button class="btn alt to-title" type="button">${tMain('menu')}</button></div>
         </div>
         <div class="card"><h3 class="display">${t('historyTitle')}</h3><p>${t('history')}</p></div>
       </div>
@@ -205,7 +207,7 @@ export function createUI5(ctx) {
             <div class="stat"><span>${t('rSpill')}</span><b class="f-spill"></b></div>
             <div class="stat"><span>${t('time')}</span><b class="f-time"></b></div>
           </div>
-          <button class="btn retry" type="button">${t('tryAgain')}</button>
+          <div class="btn-row"><button class="btn retry" type="button">${t('tryAgain')}</button><button class="btn alt to-title" type="button">${tMain('menu')}</button></div>
         </div>
         <div class="card"><p class="f-tip"></p></div>
       </div>
@@ -459,6 +461,11 @@ export function createUI5(ctx) {
   $('.restart').addEventListener('click', doRestart);
   $('.again').addEventListener('click', doRestart);
   $('.retry').addEventListener('click', doRestart);
+  // back to the main menu (it lives on the level-1 page, which opens on the title screen without params)
+  root.querySelectorAll('.to-title').forEach((b) => b.addEventListener('click', () => {
+    try { document.exitPointerLock?.(); } catch { /* ignore */ }
+    location.href = location.pathname;
+  }));
   el.pauseBtn.addEventListener('click', doPause);
 
   // switch buttons: act on pointerdown (no 300 ms wait, no focus ring); keyboard activation via click
