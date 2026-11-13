@@ -15,6 +15,9 @@ import { createGrading } from './fx/grading.js';
 import { createUI } from './ui/ui.js';
 import { createAudio } from './audio/audio.js';
 import { createAutopilot } from './debug/autopilot.js';
+import { createTitle } from './ui/title.js';
+import { createBirds } from './fx/birds.js';
+import { progress } from './core/progress.js';
 
 // ---------------------------------------------------------------------------------------------
 // Debug URL params:  ?autostart=1  ?s=600 (start arc length)  ?cam=orbit  ?view=truck|square|svetovar|city
@@ -48,6 +51,8 @@ const hemi = new THREE.HemisphereLight(0xd6e4f0, 0x8a7356, 1.15);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffe0b0, 2.6);
 const SUN_DIR = new THREE.Vector3(-0.45, 0.5, 0.74).normalize();
+const sunProj = new THREE.Vector3();
+const SUN_DIR_TITLE = new THREE.Vector3(-0.58, 0.18, 0.81).normalize(); // main menu: dusk, the sun just above the horizon (south-west)
 sun.castShadow = true;
 sun.shadow.mapSize.set(CONFIG.render.shadowMapSize * (quality === 'high' ? 2 : 1), CONFIG.render.shadowMapSize * (quality === 'high' ? 2 : 1));
 const E = CONFIG.render.shadowExtent;
@@ -143,7 +148,9 @@ events.on('ui:start', () => { audio.unlock(); if (G.state === 'menu' || G.state 
 events.on('ui:restart', () => { audio.unlock(); startRun(); });
 events.on('ui:pause', () => { if (G.state === 'playing') setState('paused'); });
 events.on('ui:resume', () => { if (G.state === 'paused') setState('playing'); });
-events.on('ui:menu', () => { resetRun(); setState('menu'); });
+events.on('ui:menu', () => { resetRun(); setState('menu'); });      // level 1 briefing
+events.on('ui:title', () => { resetRun(); setState('title'); });    // main menu
+events.on('finish', (e) => progress.complete(1, e));
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'playing') setState('paused'); });
 
 events.on('barrel:lost', (e) => {
@@ -197,8 +204,14 @@ function adaptResolution(dt) {
 let lastNow = performance.now(), elapsed = 0;
 const god = !!params.get('god');
 const autopilot = params.get('autopilot') ? createAutopilot(ctx, Number(params.get('alat')) || 4.5) : null;
+const title = createTitle(ctx);
+// compile every shader up front so switching menu -> drive never hitches on first use
+try { renderer.compile(scene, camera); } catch (e) { console.warn('precompile failed', e); }
+const birds = createBirds(ctx);
+let menuFade = 0;
+events.on('state', (e) => { if (e.state === 'title') rig.titleReset(); });
 resetRun();
-setState('menu');
+setState(VIEW || params.get('autostart') || params.get('s') ? 'menu' : 'title');
 if (params.get('autostart')) startRun();
 
 renderer.setAnimationLoop(() => {
@@ -230,8 +243,9 @@ renderer.setAnimationLoop(() => {
     if (ctx.landmarks) {
       const sq = ctx.landmarks.square?.group, sv = ctx.landmarks.svetovar?.group;
       const intro = G.state === 'menu' || G.state === 'countdown';
-      if (sq) sq.visible = intro || st.s < 470;
-      if (sv) sv.visible = !intro && st.s > 430;
+      const inTitle = G.state === 'title';
+      if (sq) sq.visible = !inTitle && (intro || st.s < 470);
+      if (sv) sv.visible = inTitle || (!intro && st.s > 430);
     }
     for (const d of ctx.dynamic) d.update?.(dt, t, st);
 
@@ -242,7 +256,9 @@ renderer.setAnimationLoop(() => {
     }
     if (!orbit) {
       const intro = START_S < 20 && VIEW !== 'truck';
-      if (intro && G.state === 'menu') rig.introMenu(t);
+      if (G.state !== 'title') rig.clearOffset();
+      if (G.state === 'title') { menuFade = rig.titleShots(dt); title.setShot(rig.shot); }
+      else if (intro && G.state === 'menu') rig.introMenu(t);
       else if (intro && G.state === 'countdown') rig.introFly(1 - Math.max(0, G.countdown) / CONFIG.game.countdown, st, t);
       else rig.update(dt, st);
     }
@@ -250,11 +266,42 @@ renderer.setAnimationLoop(() => {
   }
   if (orbit) orbit.update();
 
-  // shadow camera follows the truck
+  // shadow camera follows the truck (main menu: covers the whole brewery, morning light from the road side)
   const st = controller.state;
-  sun.target.position.set(st.x + Math.sin(st.yaw) * 12, 0, st.z + Math.cos(st.yaw) * 12);
-  sun.position.copy(sun.target.position).addScaledVector(SUN_DIR, 200);
+  const inTitle = G.state === 'title';
+  if (inTitle) sun.target.position.copy(rig.titleCenter);
+  else sun.target.position.set(st.x + Math.sin(st.yaw) * 12, 0, st.z + Math.cos(st.yaw) * 12);
+  sun.position.copy(sun.target.position).addScaledVector(inTitle ? SUN_DIR_TITLE : SUN_DIR, inTitle ? 320 : 200);
   sun.target.updateMatrixWorld();
+  // golden-hour look for the menu film
+  sun.color.setHex(inTitle ? 0xffb070 : 0xffe0b0);
+  sun.intensity = inTitle ? 3.0 : 2.6;
+  hemi.intensity = inTitle ? 0.85 : 1.15;
+  birds.update(dt, t, inTitle);
+  if (grading) {
+    const u = grading.material.uniforms;
+    u.uSepia.value = inTitle ? 0.14 : 0.22;
+    u.uVignette.value = inTitle ? 0.45 : 0.38;
+    u.uContrast.value = inTitle ? 1.06 : 1;
+    u.uExposure.value = inTitle ? 0.95 : 1;
+    u.uGrain.value = inTitle ? 0.016 : 0.03;
+    u.uFade.value = inTitle ? menuFade : 0;
+    u.uSun.value.z = 0;
+    if (inTitle) {
+      sunProj.copy(camera.position).addScaledVector(SUN_DIR_TITLE, 900).project(camera);
+      if (sunProj.z < 1) {
+        const off = Math.max(0, Math.abs(sunProj.x) - 1, Math.abs(sunProj.y) - 1);
+        u.uSun.value.set(sunProj.x * 0.5 + 0.5, sunProj.y * 0.5 + 0.5, 1.5 * Math.max(0, 1 - off * 1.5));
+      }
+    }
+  }
+  const fogNear = inTitle ? 220 : CONFIG.render.fogNear, fogFar = inTitle ? 1000 : CONFIG.render.fogFar;
+  if (scene.fog && scene.fog.near !== fogNear) { scene.fog.near = fogNear; scene.fog.far = fogFar; }
+  const ext = inTitle ? 150 : E;
+  if (sun.shadow.camera.right !== ext) {
+    Object.assign(sun.shadow.camera, { left: -ext, right: ext, top: ext, bottom: -ext, far: inTitle ? 700 : 400 });
+    sun.shadow.camera.updateProjectionMatrix();
+  }
 
   ui.setHUD?.({
     state: G.state,
@@ -280,3 +327,5 @@ window.__game.G = G;
 window.__game.controller = controller;
 window.__game.cargo = cargo;
 window.__game.startRun = startRun;
+window.__game.title = title;
+window.__game.rig = rig;
