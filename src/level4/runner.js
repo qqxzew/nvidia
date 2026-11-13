@@ -325,9 +325,13 @@ export function createRunner(ctx = {}) {
   }
 
   function coast(dt) {
-    st.speed *= Math.exp(-dt * 2.2);
+    // brake smoothly to a stop in front of the valve wheel on the finish platform (it stands ≈ 3.9 m past
+    // course.finish, the valve body ≈ 5.1 m) — coasting freely used to carry the camera through the valve
+    const stopAt = Math.min(path.length - 0.5, course.finish + 1.5);
+    const left = Math.max(0, stopAt - st.s);
+    st.speed = Math.min(st.speed * Math.exp(-dt * 2.2), Math.sqrt(2 * 9 * left));
     if (st.speed < 0.05) st.speed = 0;
-    st.s = Math.min(path.length - 0.5, st.s + st.speed * dt);
+    st.s = Math.min(stopAt, st.s + st.speed * dt);
     st.stride += st.speed * dt;
     if (st.airborne) {
       I.jumpT += dt;

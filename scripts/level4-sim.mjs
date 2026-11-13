@@ -106,7 +106,7 @@ function checkLayout() {
   const secs = course.sections;
   if (secs[0].from > 1e-6 || Math.abs(secs[secs.length - 1].to - course.length) > 1e-6) issues.push('sections do not cover the course');
   for (let i = 1; i < secs.length; i++) if (Math.abs(secs[i].from - secs[i - 1].to) > 1e-6 || secs[i].from <= secs[i - 1].from) issues.push(`section ${secs[i].id} does not follow ${secs[i - 1].id}`);
-  if (Math.abs(course.finish - (course.length - 4)) > 1e-6) issues.push(`finish ${course.finish} ≠ length − 4`);
+  if (Math.abs(course.finish - (course.length - (COURSE.finishBack ?? 4))) > 1e-6) issues.push(`finish ${course.finish} ≠ length − finishBack`);
   return { issues, corners };
 }
 

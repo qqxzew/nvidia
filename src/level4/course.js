@@ -31,7 +31,7 @@ export const COURSE = {
   points: LEVEL4_ROUTE.points.map(toL4),
   radius: LEVEL4_ROUTE.radius,
   start: 2,               // runner starts here (s)
-  finishBack: 4,          // the steam valve platform: crossing s = length − finishBack wins (course.finish)
+  finishBack: 6,          // the steam valve platform: crossing s = length − finishBack wins (course.finish)
   // walking-surface knots { x, z (local), y } → projected onto the path → deckAt(s), stairs
   elevation: LEVEL4_ROUTE.elevation.map(({ x, z, y }) => { const [lx, lz] = toL4([x, z]); return { x: lx, z: lz, y }; }),
   // named stretches, each begins where its `at` point (local) projects onto the path; to = next.from, last → length
