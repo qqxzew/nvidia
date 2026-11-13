@@ -29,6 +29,10 @@ const STRINGS = {
     level2Desc: 'Sudy k výtahu, pozor na krysy',
     level3Name: 'Gangsteři ve Světovaru',
     level3Desc: 'Noční obrana varny před zloději sudů',
+    level4Name: 'Varna',
+    level4Desc: 'Běh po lávkách nad varnami',
+    level5Name: 'Šílená stáčírna',
+    level5Desc: 'Stáčení piva na rozjeté lince',
     locked: 'Zamčeno',
     best: 'Nejlepší {time}',
     aboutText:
@@ -225,6 +229,10 @@ const STRINGS = {
     level2Desc: 'Barrels to the lift, beware the rats',
     level3Name: 'Gangsters at Světovar',
     level3Desc: 'Guard the brewhouse from barrel thieves by night',
+    level4Name: 'The brewhouse',
+    level4Desc: 'Run the catwalks above the kettles',
+    level5Name: 'The mad bottling hall',
+    level5Desc: 'Keep up with the runaway bottling line',
     locked: 'Locked',
     best: 'Best {time}',
     aboutText:
@@ -410,6 +418,10 @@ const STRINGS = {
     level2Desc: 'Fässer zum Aufzug, Vorsicht vor Ratten',
     level3Name: 'Gangster im Světovar',
     level3Desc: 'Nachts das Sudhaus gegen Fassdiebe verteidigen',
+    level4Name: 'Die Sudhalle',
+    level4Desc: 'Über die Laufstege der Sudkessel rennen',
+    level5Name: 'Die verrückte Abfüllhalle',
+    level5Desc: 'Mit der rasenden Abfülllinie Schritt halten',
     locked: 'Gesperrt',
     best: 'Bestzeit {time}',
     aboutText:

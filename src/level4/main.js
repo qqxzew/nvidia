@@ -1,3 +1,4 @@
+import { progress } from '../core/progress.js';
 // Level 4 "Varna" — first-person run across the brewhouse catwalks (owner: lead). Loaded by src/boot.js on ?level=4.
 // Wires: renderer + first-person camera + grading, factory interior + hazards (art), runner simulation (gameplay),
 // UI + audio (ui). See docs/LEVEL4.md for the contract.
@@ -110,7 +111,7 @@ events.on('ui:pause', () => { if (G.state === 'playing') setState('paused'); });
 events.on('ui:resume', () => { if (G.state === 'paused') setState('playing'); });
 events.on('ui:menu', () => { resetRun(); setState('menu'); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'playing') setState('paused'); });
-events.on('finish', (e) => { if (G.state === 'playing') { G.result = e; setState('won'); } });
+events.on('finish', (e) => { if (G.state === 'playing') { G.result = e; try { progress.complete(4, { stars: e?.stars || 1, time: e?.time || 0 }); } catch {} setState('won'); } });
 events.on('fail', (e) => { if (G.state === 'playing' && !god) { G.result = e; setState('lost'); } });
 events.on('run:hit', () => { camRig.shake = 1; });
 

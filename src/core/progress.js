@@ -5,6 +5,8 @@ export const LEVELS = [
   { id: 1, key: 'level1', playable: true },
   { id: 2, key: 'level2', playable: true },
   { id: 3, key: 'level3', playable: true },  // src/levels/gangsters (?level=3)
+  { id: 4, key: 'level4', playable: true },  // src/level4 (?level=4)
+  { id: 5, key: 'level5', playable: true },  // src/level5 (?level=5)
 ];
 
 /** first playable level after `id` (levels still in preparation are skipped), or id + 1 */
