@@ -18,6 +18,10 @@ Reference photos & original 1911–1912 plans: `docs/reference/` (open them with
 - `5.webp 6.webp 9.webp` — the truck (solid rubber tyres, wooden spoke wheels, open cab with roof, flat bed with side boards, barrels)
 - `1.webp 2.webp` — mood references only (chase cam, warm dusty light). Do NOT copy anything from those games.
 
+**Levels:** `src/main.js` is a tiny router. No `?level` → level 1 (`src/level1.js`, everything below).
+`?level=4` → level 4 "Varna" (`src/level4/`, standalone, not in the main flow yet) — see `docs/LEVEL4.md`.
+`?level=5` → level 5 "Šílená stáčírna" (`src/level5/`, standalone, not in the main flow yet) — see `docs/LEVEL5.md`.
+
 ## Conventions (must follow)
 - Units meters. **Y up. X = east, Z = south.** Ground is y = 0 everywhere (flat world).
 - A model with `rotation.y = yaw = 0` faces **+Z**. Heading vector = `(sin yaw, cos yaw)`.
@@ -59,7 +63,7 @@ ctx = { THREE, scene, camera, renderer, route, events, config, quality: 'high'|'
 ## Module ownership (one owner per file — do not edit files you don't own)
 | File | Owner | Export |
 |---|---|---|
-| `src/main.js`, `src/config.js`, `src/core/*`, `src/world/route.js`, `src/vehicle/controller.js`, `src/gameplay/cargo.js`, `src/fx/*` | lead | — |
+| `src/main.js` (router), `src/level1.js`, `src/config.js`, `src/core/*`, `src/world/route.js`, `src/vehicle/controller.js`, `src/gameplay/cargo.js`, `src/fx/*` | lead | — |
 | `src/vehicle/truckModel.js` | vehicles | `createTruck(ctx)`, `createBarrelMesh(ctx)` |
 | `src/gameplay/traffic.js` (+ `src/vehicle/trafficModels.js`) | vehicles | `createTraffic(ctx)` |
 | `src/world/square.js` | landmarks | `buildSquare(ctx)` |

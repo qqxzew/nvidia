@@ -1,0 +1,129 @@
+/* Plzeň 1926 – level 4 "Varna" (first-person catwalk run): level-specific UI on top of ../ui/ui.css (same materials,
+   grid, easing). Minimal HUD: three small enamel plates on the top edge only (pressure gauge, course progress, hits +
+   pause); the middle of the screen stays free for the first-person view. Touch: ◀ ▶ bottom left, red jump bottom
+   right. Only transform and opacity animate. */
+
+.plz4 { --gauge: 76px; }
+
+.hud-top { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
+.plz4 .row { display: flex; gap: 8px; align-items: flex-start; }
+
+/* ---------- top-left: pressure gauge (time left) ---------- */
+.p-gauge { isolation: isolate; padding: 4px 6px 4px; display: flex; flex-direction: column; align-items: center; }
+.p-gauge::after { content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: 8px; background: var(--red); opacity: 0; }
+.p-gauge.crit::after { animation: gpulse .5s var(--ease) infinite alternate; }
+@keyframes gpulse { from { opacity: .35; } to { opacity: 1; } }
+.p-gauge .gauge { width: var(--gauge); height: var(--gauge); }
+.p-gauge .needle { transition: transform .1s linear; }
+.g-time { margin-top: 1px; line-height: 1; }
+.g-time .big { font: 400 22px/1 'Rozha One', Georgia, serif; font-variant-numeric: tabular-nums; color: var(--cream); }
+.p-gauge.low .g-time .big { color: #f3b9a8; }
+.p-gauge.crit .g-time .big { color: var(--cream); }
+
+/* ---------- top-centre: slim course progress ---------- */
+.p-prog { position: absolute; top: max(var(--edge), var(--st)); left: 50%; transform: translateX(-50%);
+  width: clamp(200px, 36vw, 360px); padding: 6px 10px 6px 16px; display: flex; align-items: center; gap: 10px; }
+.prog-track { position: relative; flex: 1 1 auto; height: 24px; }
+.prog-bar { position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; background: var(--rim); overflow: hidden; }
+.prog-fill { position: absolute; inset: 0; background: var(--cream); transform-origin: 0 50%; transform: scaleX(0); }
+.prog-tick { position: absolute; top: 50%; width: 2px; height: 10px; margin: -5px 0 0 -1px; border-radius: 1px; background: var(--cream-3); }
+.prog-man { position: absolute; left: -10px; top: 50%; width: 20px; height: 20px; margin-top: -13px; color: var(--cream); will-change: transform;
+  filter: drop-shadow(0 1px 0 rgba(17, 26, 21, .9)); }
+.prog-man svg, .prog-valve svg { width: 100%; height: 100%; }
+.prog-valve { flex: none; width: 22px; height: 22px; color: var(--cream); }
+.sec-tag { position: absolute; left: 50%; top: calc(100% + 6px); padding: 3px 12px 4px; white-space: nowrap;
+  font: 400 15px/1.1 'Rozha One', Georgia, serif; color: var(--cream);
+  background: var(--enamel-a); border: 1px solid var(--rim); border-radius: 6px;
+  opacity: 0; transform: translate(-50%, -6px); transition: opacity .25s var(--ease), transform .25s var(--ease); pointer-events: none; }
+.sec-tag.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- top-right: hits + pause ---------- */
+.p-hits { height: 48px; padding: 0 12px 0 10px; display: flex; align-items: center; gap: 6px; transition: background-color .2s var(--ease), border-color .2s var(--ease); }
+.p-hits i { display: block; width: 18px; height: 18px; color: var(--cream-2); }
+.p-hits i svg { width: 100%; height: 100%; }
+.p-hits b { display: block; min-width: 14px; font: 400 24px/1 'Rozha One', Georgia, serif; font-variant-numeric: tabular-nums; text-align: center; }
+.hud .p-hits.hot { background: var(--red); border-color: rgba(239, 228, 198, .4); }
+.p-hits.hot i { color: var(--cream); }
+
+/* ---------- slips (fall, last seconds) under the progress plate; never in the middle ---------- */
+.plz4 .toast-wrap { top: calc(max(var(--edge), var(--st)) + 80px); }
+.plz4 .toast { padding: 6px 14px; animation-duration: 2.2s; }
+.plz4 .toast b { font-size: 21px; }
+.plz4 .toast i { font-size: 15px; margin-top: 3px; }
+.plz4 .toast.drop i { font: 400 20px/1 'Rozha One', Georgia, serif; color: var(--ink); }
+
+/* hole fall: the view sinks into darkness until the respawn */
+.fall { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(12, 8, 4, .62) 0%, rgba(12, 8, 4, .94) 70%);
+  transition: opacity .3s var(--ease); }
+.fall.on { opacity: 1; transition: opacity .22s ease-in; }
+.plz4 .flash { box-shadow: inset 0 0 0 10px rgba(154, 43, 28, .85), inset 0 0 60px 10px rgba(154, 43, 28, .45); }
+
+/* ---------- touch controls: ◀ ▶ bottom left, big red jump bottom right ---------- */
+.plz4 .grp { pointer-events: none; }
+.plz4 .pad { position: relative; pointer-events: auto; touch-action: none; }
+.plz4 .pad::after { content: ''; position: absolute; inset: -6px; }
+.pad-jump { width: calc(var(--pad) * 1.3); height: calc(var(--pad) * 1.12); background: var(--red); border-color: rgba(239, 228, 198, .4); }
+.pad-jump svg { width: 34%; height: 34%; }
+.pad-jump.on { background: var(--red-dk); }
+
+/* ---------- menu ---------- */
+.menu4 { width: min(720px, 100%); grid-template-columns: 1fr 1.4fr; gap: 8px 28px; padding: 22px 28px 18px; overflow: auto; }
+.menu4 .title { font-size: 44px; }
+.menu4 .goal { font-size: 26px; line-height: 1.1; color: var(--red); margin-bottom: 4px; }
+.menu4 .mission { font-size: 17px; line-height: 1.3; margin: 0 0 10px; }
+.hz { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hz li { display: flex; align-items: center; gap: 10px; font-size: 16px; line-height: 1.2; color: var(--ink-2); }
+.hz li b { font-weight: 500; color: var(--ink); }
+.hz-i { flex: none; display: flex; gap: 3px; justify-content: center; width: 60px; padding: 4px 6px; border-radius: 4px; color: var(--cream); background: var(--enamel); }
+.hz-i svg { width: 22px; height: 22px; }
+.menu4 .hint { grid-column: 1 / -1; padding-top: 10px; }
+.menu4 .hint .sep { color: var(--ink-3); }
+.menu4 .btn { margin-top: 18px; }
+
+/* ---------- results ---------- */
+.res4 .head { min-height: 88px; }
+.res4 .stats { margin-bottom: 12px; }
+.res4 .stat { padding: 2px 0; }
+.res4 .stat b { font-size: 22px; }
+
+/* ---------- compact phones (landscape ~390 px tall) ---------- */
+@media (max-height: 430px) {
+  .plz4 { --edge: 8px; --gauge: 60px; }
+  .g-time .big { font-size: 19px; }
+  .p-prog { padding: 4px 8px 4px 14px; width: clamp(190px, 34vw, 320px); }
+  .prog-track { height: 22px; }
+  .prog-man { width: 18px; height: 18px; left: -9px; margin-top: -12px; }
+  .prog-valve { width: 20px; height: 20px; }
+  .sec-tag { font-size: 14px; top: calc(100% + 4px); }
+  .p-hits { height: 44px; padding: 0 10px 0 8px; }
+  .p-hits b { font-size: 21px; }
+  .plz4 .btn-pause { width: 44px; height: 44px; }
+  .plz4 .toast-wrap { top: calc(max(var(--edge), var(--st)) + 66px); }
+  .plz4 .toast b { font-size: 18px; }
+  .plz4 .toast i { font-size: 13px; }
+  .plz4 .toast.drop i { font-size: 17px; }
+  .menu4 { padding: 14px 22px 12px; gap: 6px 22px; }
+  .menu4 .title { font-size: 36px; }
+  .menu4 .sub { font-size: 18px; }
+  .menu4 .goal { font-size: 22px; margin-bottom: 2px; }
+  .menu4 .mission { font-size: 15px; margin-bottom: 6px; }
+  .hz { gap: 4px; }
+  .hz li { font-size: 14px; }
+  .hz-i { width: 52px; padding: 3px 5px; }
+  .hz-i svg { width: 19px; height: 19px; }
+  .menu4 .hint { font-size: 13px; padding-top: 6px; }
+  .menu4 .btn { min-height: 52px; margin-top: 12px; }
+  .res4 .head { min-height: 80px; }
+  .res4 .stat { font-size: 16px; padding: 1px 0; }
+  .res4 .stat b { font-size: 20px; }
+  .res4 .stats { margin-bottom: 8px; }
+  .res4 .card p { font-size: 14px; line-height: 1.3; }
+}
+@media (max-width: 640px) {
+  .p-prog { width: clamp(150px, 30vw, 240px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .p-gauge.crit::after { animation: none; opacity: .8; }
+  .sec-tag, .fall { transition: none; }
+}

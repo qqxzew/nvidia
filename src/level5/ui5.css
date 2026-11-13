@@ -1,0 +1,204 @@
+/* Plzeň 1926 – level 5 "Šílená stáčírna": level-specific UI on top of ../ui/ui.css (same materials, grid, easing).
+   Enamel plates keep to the corners; the four switch buttons sit on the bottom edge under the belts.
+   The only new colours are the four station colours from config.js (passed in as --c / --fg): they are the
+   gameplay language (barrel tag = button = in-world lamp). Only transform and opacity animate. */
+
+.plz5 {
+  --bw: 14px;                 /* HUD barrel width */
+  --sw-w: 156px;              /* switch button */
+  --sw-h: 72px;
+  --mid-l: 30vw; --mid-w: 40vw; --mid-t: 28vh; --mid-h: 38vh;  /* the empty inside of the loop (set by ui.js) */
+}
+
+/* ---------- top-left: time + dispatched barrels ---------- */
+.plz5 .row { display: flex; gap: 8px; align-items: stretch; }
+.plz5 .p-time { min-width: 96px; }
+.plz5 .p-barrels { padding: 8px 12px 6px; display: flex; flex-direction: column; justify-content: center; }
+.plz5 .barrels { grid-template-columns: repeat(6, var(--bw)); }
+.plz5 .barrels svg { width: var(--bw); height: calc(var(--bw) * 1.28); }
+.plz5 .barrels .todo .b-body { fill: none; stroke: var(--cream-3); stroke-dasharray: 2 2; }
+.plz5 .barrels .todo .b-stave, .plz5 .barrels .todo .b-hoop { stroke: none; }
+.plz5 .p-barrels .count { color: var(--cream); }
+
+/* ---------- top-right: strikes + pause, belt-speed dial ---------- */
+.plz5 .hud-r .row { align-items: flex-start; }
+.p-strikes { padding: 4px 10px 6px; text-align: center; transition: background-color .2s var(--ease), border-color .2s var(--ease); }
+.p-strikes .lbl { font-size: 13px; line-height: 1.2; color: var(--cream-2); }
+.p-strikes .slots { display: flex; gap: 6px; justify-content: center; margin-top: 2px; }
+.p-strikes .slots span { display: block; width: 18px; height: 22px; }
+.p-strikes svg { width: 100%; height: 100%; }
+.k-body { fill: none; stroke: var(--cream-3); stroke-width: 1.4; stroke-dasharray: 2.4 2; }
+.k-crack { fill: none; stroke: none; stroke-width: 1.8; stroke-linejoin: bevel; }
+.p-strikes .hit .k-body { fill: #c4412b; stroke: var(--cream); stroke-dasharray: none; }
+.p-strikes .hit .k-crack { stroke: var(--enamel-dk); }
+.hud .p-strikes.hot { background: var(--red); border-color: rgba(239, 228, 198, .4); }
+.p-strikes.hot .hit .k-body { fill: var(--enamel-dk); stroke: var(--cream); }
+.p-strikes.hot .hit .k-crack { stroke: var(--cream); }
+
+.p-speed { position: relative; padding: 4px 4px 6px; display: flex; flex-direction: column; align-items: center; }
+.p-speed .dial { width: 80px; height: 80px; }
+.p-speed .lbl { margin-top: 2px; font-size: 12px; line-height: 1.1; color: var(--cream-2); white-space: nowrap; }
+.spd-tag { position: absolute; right: calc(100% + 8px); top: 24px; display: flex; align-items: center; gap: 4px; padding: 6px 12px 6px 8px;
+  font: 400 17px/1 'Rozha One', Georgia, serif; white-space: nowrap; color: var(--cream);
+  background: var(--red); border: 1px solid rgba(239, 228, 198, .4); border-radius: 8px;
+  opacity: 0; transform: translateX(8px); transition: opacity .2s var(--ease), transform .2s var(--ease); }
+.spd-tag svg { width: 18px; height: 18px; }
+.spd-tag.on { opacity: 1; transform: none; }
+
+/* ---------- inside the loop: banner, toasts, first-run coach ---------- */
+.mid { position: absolute; left: var(--mid-l); top: var(--mid-t); width: var(--mid-w); height: var(--mid-h);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; pointer-events: none; }
+.plz5 .toast-wrap { position: static; display: flex; flex-direction: column; align-items: center; }
+.plz5 .toast.ok { color: #3f7a52; }
+.plz5 .toast.meh { color: var(--ink); }
+.plz5 .banner { white-space: nowrap; text-align: center; }
+.coach { display: flex; align-items: center; gap: 8px; max-width: min(100%, 360px); padding: 8px 12px; font-size: 15px; line-height: 1.25;
+  opacity: 0; transform: translateY(6px); transition: opacity .3s var(--ease), transform .3s var(--ease); }
+.coach.on { opacity: 1; transform: none; }
+.coach svg { width: 22px; height: 22px; flex: none; color: var(--cream); }
+.coach svg circle { fill: var(--enamel); }
+/* while a toast is up the coach steps aside */
+.mid .toast-wrap:not(:empty) ~ .coach { opacity: 0; }
+
+/* ---------- bottom: the four switch buttons ---------- */
+.sws { position: absolute; left: 50%; bottom: max(var(--edge), var(--sb)); transform: translateX(-50%); display: flex; gap: 8px; pointer-events: none; }
+.sw {
+  position: relative; width: var(--sw-w); height: var(--sw-h); padding: 0 10px 0 16px;
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  color: var(--cream-2); background: var(--enamel-a); border: 1px solid var(--rim); border-radius: 10px;
+  pointer-events: auto; touch-action: none;
+  transition: background-color .12s var(--ease), color .12s var(--ease), border-color .12s var(--ease);
+}
+.plz .sw { color: var(--cream-2); }
+.sw::before { /* the station's colour band (OFF) */
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; border-radius: 9px 0 0 9px; background: var(--c); }
+.sw::after { content: ''; position: absolute; inset: -4px -4px -8px; } /* bigger hit area */
+.sw-ico { position: relative; flex: none; width: 34px; height: 34px; color: var(--cream); }
+.sw-ico svg { width: 100%; height: 100%; }
+.sw-n { position: absolute; left: -9px; top: -10px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px;
+  font: 400 14px/20px 'Rozha One', Georgia, serif; text-align: center; color: var(--ink); background: var(--cream); box-shadow: 0 1px 0 rgba(17, 26, 21, .6); }
+.sw-txt { display: flex; flex-direction: column; min-width: 0; }
+.sw-name { font: 400 20px/1.1 'Rozha One', Georgia, serif; color: var(--cream); white-space: nowrap; }
+.sw-st { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 14px; line-height: 1.1; white-space: nowrap; }
+.sw-arr { display: block; width: 20px; height: 20px; flex: none; }
+.sw-arr svg { width: 100%; height: 100%; }
+.sw .a-on { display: none; }
+.sw.on .a-on { display: block; }
+.sw.on .a-off { display: none; }
+/* ON: the plate lights up in the station colour */
+.sw.on { background: var(--c); border-color: rgba(239, 228, 198, .7); color: var(--fg); }
+.plz .sw.on { color: var(--fg); }
+.sw.on .sw-name, .sw.on .sw-ico { color: var(--fg); }
+.sw.on::before { background: rgba(239, 228, 198, .85); width: 4px; }
+.sw.hover { border-color: var(--cream); }
+.sw:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+/* a barrel that needs this station is coming: small dots (top right), the plate breathes once in a while */
+.sw-dots { position: absolute; right: 7px; top: 6px; display: flex; gap: 3px; }
+.sw-dots i { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--cream); opacity: 0; transform: scale(.4); transition: opacity .15s var(--ease), transform .15s var(--ease); }
+.sw-dots i.on { opacity: 1; transform: none; }
+.sw.on .sw-dots i { background: var(--fg); }
+.sw.near::after { border-radius: 14px; box-shadow: 0 0 0 2px var(--c); opacity: 0; animation: near 1s var(--ease) infinite; inset: -4px; }
+@keyframes near { 0% { opacity: .9; transform: scale(.98); } 100% { opacity: 0; transform: scale(1.06); } }
+/* switch is ON and a barrel it would ruin is arriving */
+.sw-warn { position: absolute; left: 50%; top: -14px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%;
+  font: 400 18px/24px 'Rozha One', Georgia, serif; text-align: center; color: var(--cream); background: #c4412b; border: 1px solid var(--cream);
+  opacity: 0; transform: scale(.5); transition: opacity .12s var(--ease), transform .12s var(--ease); pointer-events: none; }
+.sw.danger .sw-warn { opacity: 1; transform: none; animation: warnb .36s var(--ease) infinite alternate; }
+@keyframes warnb { from { transform: scale(1); } to { transform: scale(1.18); } }
+
+/* tap ring at the clicked switch in the 3D view */
+.tap { position: absolute; left: 0; top: 0; width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--c, var(--cream));
+  box-shadow: 0 0 0 2px rgba(17, 26, 21, .5); opacity: 0; pointer-events: none; transform: translate(-50%, -50%); }
+
+/* ---------- menu: goal + recipe row + rules ---------- */
+.menu5 { width: min(760px, 100%); grid-template-columns: 1fr 1.45fr; gap: 8px 28px; padding: 20px 28px 18px; overflow: auto; }
+.menu5 .goal { font-size: 26px; line-height: 1.1; color: var(--red); margin-bottom: 6px; }
+.menu5 .mission { font-size: 16px; line-height: 1.3; margin: 0 0 6px; }
+.rule { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 17px; line-height: 1.25; color: var(--ink); }
+.ri { display: block; flex: none; width: 22px; height: 22px; color: var(--red); }
+.ri svg { width: 100%; height: 100%; }
+.cons { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; }
+.cons li { display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 1.2; color: var(--ink-2); }
+.ci { display: block; flex: none; width: 20px; height: 20px; padding: 3px; border-radius: 4px; color: var(--fg); background: var(--c); }
+.ci svg { width: 100%; height: 100%; }
+.recipe { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--ink-line); }
+.rc { position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 14px;
+  color: var(--fg); background: var(--c); border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(43, 27, 14, .35); }
+.rc-n { position: absolute; left: -7px; top: -9px; width: 22px; height: 22px; border-radius: 50%; font: 400 15px/22px 'Rozha One', Georgia, serif; text-align: center;
+  color: var(--paper); background: var(--ink); }
+.rc-i { display: block; flex: none; width: 26px; height: 26px; }
+.rc-i svg { width: 100%; height: 100%; }
+.rc-t { display: flex; flex-direction: column; min-width: 0; }
+.rc-name { font: 400 18px/1.05 'Rozha One', Georgia, serif; white-space: nowrap; }
+.rc-verb { font-size: 13px; line-height: 1.1; opacity: .85; }
+.rc-arr { display: block; flex: none; width: 18px; height: 9px; color: var(--ink-3); }
+.rc-arr svg { width: 100%; height: 100%; }
+.menu5 .hint { grid-column: 1 / -1; padding-top: 8px; }
+.menu5 .btn { margin-top: 16px; }
+.menu5 .title { font-size: 42px; }
+
+/* ---------- results ---------- */
+.res5 .head { min-height: 88px; }
+.res5 .stats { margin-bottom: 12px; }
+.res5 .stat { padding: 2px 0; }
+.res5 .stat b { font-size: 22px; }
+
+/* ---------- compact phones (landscape ~390 px tall) ---------- */
+@media (max-height: 430px) {
+  .plz5 { --edge: 8px; --sw-w: 124px; --sw-h: 58px; --bw: 12px; }
+  .plz5 .p-time { min-width: 80px; padding: 2px 10px 4px; }
+  .plz5 .p-time .big { font-size: 28px; }
+  .plz5 .p-time .lbl { font-size: 13px; }
+  .plz5 .p-barrels { padding: 6px 10px 4px; }
+  .plz5 .p-barrels .count { font-size: 13px; margin-top: 2px; }
+  .plz5 .btn-pause { width: 44px; height: 44px; }
+  .p-strikes { padding: 2px 8px 4px; }
+  .p-strikes .slots span { width: 15px; height: 19px; }
+  .p-speed .dial { width: 64px; height: 64px; }
+  .p-speed .dial-read .spd { font-size: 15px; }
+  .p-speed .dial-read .u { font-size: 9px; }
+  .p-speed .lbl { font-size: 11px; }
+  .spd-tag { top: 16px; font-size: 15px; padding: 5px 10px 5px 6px; }
+  .plz5 .banner { font-size: 17px; padding: 6px 14px; }
+  .plz5 .toast b { font-size: 20px; }
+  .plz5 .toast { padding: 6px 12px; }
+  .coach { font-size: 14px; padding: 6px 10px; }
+  .sw { padding: 0 8px 0 14px; gap: 8px; }
+  .sw-ico { width: 26px; height: 26px; }
+  .sw-n { left: -8px; top: -9px; min-width: 18px; height: 18px; font-size: 13px; line-height: 18px; }
+  .sw-name { font-size: 17px; }
+  .sw-st { font-size: 13px; }
+  .sw-arr { width: 17px; height: 17px; }
+  .menu5 { padding: 14px 22px 12px; gap: 6px 22px; }
+  .menu5 .title { font-size: 36px; }
+  .menu5 .sub { font-size: 18px; }
+  .menu5 .goal { font-size: 22px; margin-bottom: 4px; }
+  .menu5 .mission { font-size: 14px; margin-bottom: 4px; }
+  .rule { font-size: 15px; margin-bottom: 4px; }
+  .ri { width: 18px; height: 18px; }
+  .cons li { font-size: 13px; }
+  .ci { width: 18px; height: 18px; }
+  .plz5 .barrels { gap: 3px; }
+  .recipe { padding-top: 10px; }
+  .rc { padding: 6px 8px 6px 12px; gap: 6px; }
+  .rc-i { width: 20px; height: 20px; }
+  .rc-name { font-size: 16px; }
+  .rc-verb { font-size: 12px; }
+  .menu5 .hint { font-size: 13px; padding-top: 6px; }
+  .menu5 .btn { min-height: 52px; margin-top: 12px; }
+  .res5 .head { min-height: 80px; }
+  .res5 .stat { font-size: 16px; padding: 1px 0; }
+  .res5 .stat b { font-size: 20px; }
+  .res5 .stats { margin-bottom: 8px; }
+  .res5 .card p { font-size: 14px; line-height: 1.3; }
+}
+@media (max-width: 600px) {
+  .plz5 { --sw-w: 108px; }
+  .sw-ico { width: 10px; }
+  .sw-ico svg { display: none; }
+  .sw { padding-left: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sw.near::after, .sw.danger .sw-warn { animation: none; }
+  .coach, .spd-tag, .sw-dots i { transition: none; }
+}
