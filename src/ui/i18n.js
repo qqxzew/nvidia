@@ -73,6 +73,63 @@ const STRINGS = {
     // portrait overlay
     rotate: 'Otočte telefon na šířku',
     rotateSub: 'Hra se hraje na šířku',
+
+    // level switcher (menu of every level)
+    levelN: 'Level {n}',
+    levelPick: 'Výběr levelu',
+
+    // ---------------- level 3 "Gangsteři ve Světovaru" ----------------
+    g3title: 'Gangsteři ve Světovaru',
+    g3subtitle: 'Plzeň 1929 · noční služba',
+    // {time} mm:ss, {max} barrels (accusative, e.g. "3 sudy")
+    g3mission:
+      'Jste noční hlídač pivovaru Světovar. Oknem se dovnitř derou gangsteři a chtějí odnést sudy. Brokovnici máte nabitou solí. Vydržte {time}, než dorazí policie, a nedovolte jim odnést víc než {max}. Hlídače s lucernou nestřílejte!',
+    g3hintTouch: 'Tažením prstu míříte, ťuknutím nebo tlačítkem Pal střílíte, tlačítko Nabít nabíjí.',
+    g3hintKeys: 'Myší míříte, kliknutím střílíte, R nabíjí',
+    g3hintKeys2: 'Esc – pauza',
+    g3clickToAim: 'Klikněte do hry – myší pak míříte',
+    g3fire: 'Pal',
+    g3start: 'Nastoupit službu',
+    g3go: 'Hlídej',
+
+    // HUD
+    g3timeLabel: 'Policie za',
+    g3stolenCount: 'Ukradeno {stolen} z {max}',
+    g3barrelsLabel: 'Sudy ve sklepě',
+    g3scoreLabel: 'Body',
+    g3shellsLabel: 'Náboje',
+    g3reload: 'Nabít',
+    g3reloadKey: 'Nabít – R',
+    g3reloading: 'Nabíjím…',
+    g3toastStolen: 'Sud ukraden',
+    g3toastStolenCount: 'ukradeno {stolen} z {max}',
+    g3toastLastChance: 'Další už nesmí zmizet',
+    g3toastInnocent: 'To byl hlídač!',
+    g3toastInnocentSub: 'Hlídače s lucernou nestřílejte',
+    g3toastRecovered: 'Sud zachráněn',
+
+    // results
+    g3noteKind: 'Hlášení noční služby',
+    g3noteWhere: 'Světovar, 1929',
+    g3stampTop: 'PIVOVAR SVĚTOVAR',
+    g3stampBottom: 'NOČNÍ SLUŽBA',
+    g3stampFail: 'VYKRADENO',
+    g3winTitle: 'Policie dorazila',
+    g3winLine1: 'Ani jeden sud nezmizel',
+    g3winLine2: 'Dobrá služba, sklep ubráněn',
+    g3winLine3: 'Ubráněno, ale bylo to těsné',
+    g3score: 'Body',
+    g3stolen: 'Ukradeno sudů',
+    g3again: 'Další noc',
+    // TODO: fact-check
+    g3history:
+      'Světovar vařil pivo v letech 1913–1933, tedy i v době, kdy v Americe platila prohibice (1920–1933) a obchod s pivem tam ovládli gangsteři. Rozlehlý areál na Borech měl vlastní železniční vlečku a v noci jej obcházeli hlídači.',
+    g3historyTitle: 'Z historie',
+    g3failBarrels: 'Gangsteři odnesli příliš mnoho sudů',
+    g3failOther: 'Služba skončila nezdarem',
+    g3tipBarrels: 'Střílejte nejdřív na ty, kdo už drží sud – a nabíjejte, dokud je klid.',
+    g3tipOther: 'Hlídejte všechna okna a nabíjejte včas.',
+    g3tryAgain: 'Zkusit znovu',
   },
 };
 

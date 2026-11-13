@@ -11,6 +11,15 @@ import { input, settings, saveSettings } from './shared.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
+// Small level switcher shown in the menu of every level. Plain links: switching = full page reload
+// to ?level=N (no other params are kept).
+export const LEVELS = [1, 3];
+export function levelSwitch(current) {
+  return `<nav class="lvl-switch" aria-label="${t('levelPick')}">${LEVELS.map((n) => (n === current
+    ? `<a class="lvl-b on" href="?level=${n}" aria-current="page">${t('levelN', { n })}</a>`
+    : `<a class="lvl-b" href="?level=${n}">${t('levelN', { n })}</a>`)).join('')}</nav>`;
+}
+
 export function createUI(ctx) {
   const { events, config } = ctx;
   const GAME = config.game;
@@ -75,6 +84,7 @@ export function createUI(ctx) {
           <div class="title display">${titleWords.join(' ')} <em>${titleLast}</em></div>
           <div class="sub">${t('subtitle')}</div>
           <button class="btn go" type="button">${t('start')}</button>
+          ${levelSwitch(1)}
         </div>
         <div class="col">
           <p class="mission">${t('mission', { n: barrelsText(GAME.barrelCount), time: fmtTime(GAME.timeLimit), max: barrelsText(GAME.maxLostBarrels) })}</p>

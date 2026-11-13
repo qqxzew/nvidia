@@ -1,3 +1,12 @@
+# Backlog
+
+## Level 3 "Gangsteři ve Světovaru" (added 2026-11-13)
+- [ ] Play it for real (only tested by a scripted bot in a throttled tab): difficulty, timings, aim feel on touch.
+- [ ] Gangsters read too dark against the moonlit windows — add a rim light / lighter coat tints.
+- [ ] Listen to and tune the procedural audio.
+- [ ] Fact-check the level-3 history card (`src/ui/i18n.js`, keys `g3*`).
+- [ ] Task in the AFFiNE design doc ("EpicTower") is unfinished for level 3 — confirm the guard/salt-shotgun design with the team.
+
 # Backlog — level 1
 
 ## From the user's own test drive (2026-11-13)

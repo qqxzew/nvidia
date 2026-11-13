@@ -1,5 +1,8 @@
 # Plzeň 1926 — Level 1 "Jízda do Světovaru"
 
+> Levels: `index.html` loads `src/boot.js`, which picks the level from `?level=N` (default 1 = this document).
+> Level 3 "Gangsteři ve Světovaru" lives in `src/levels/gangsters/` — its contract is `docs/LEVEL3.md`.
+
 Mobile-first browser game (Three.js + Vite, vanilla ES modules). Landscape. Czech UI only (prototype).
 A tourist drives a 1920s brewery truck loaded with 10 beer barrels from **náměstí Republiky** to the
 **Světovar brewery** (Český plzeňský pivovar, Bory — today's TechTower) in under 1:50 (CONFIG.game.timeLimit), losing at most 2 barrels.
