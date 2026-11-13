@@ -1,8 +1,8 @@
 // Main menu over the Světovar film (cameraRig.titleShots), styled like a 1920s Světovar advertisement:
 // a red label with heavy grotesque lettering (as on the brewery wagons) and solid printed plates as buttons. Language = three flags (direct switch), settings = quiet
 // icons in the bottom-right corner.
-// Views: main · levels · about · prologue.  Emits: ui:menu (open level 1 briefing), audio:volume, audio:mute.
-// Other levels open as their own page (?level=N).
+// Views: main · levels · about · prologue.  Emits: ui:menu (open level 1 briefing), ui:level {id} (open level 2), audio:volume, audio:mute.
+// Level 3 opens as its own page (?level=3).
 import './title.css';
 import { t, getLang, setLang, LANGS, langName, fmtTime } from './i18n.js';
 import { ICON } from './icons.js';
@@ -104,9 +104,11 @@ export function createTitle(ctx) {
     }).join('');
   }
 
-  // Level 1 runs on this page (its briefing screen); other levels are separate pages: ?level=N (src/boot.js).
+  // level 1 -> its briefing screen (ui:menu); level 2 -> main.js opens the cellar scene;
+  // other levels are separate pages: ?level=N (src/boot.js)
   function openLevel(id = 1) {
     if (id === 1) { events.emit('ui:menu'); return; }
+    if (id === 2) { events.emit('ui:level', { id: 2 }); return; }
     root.classList.add('leaving');
     setTimeout(() => { location.href = `${location.pathname}?level=${id}`; }, 180);
   }

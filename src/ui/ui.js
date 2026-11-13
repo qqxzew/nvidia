@@ -110,7 +110,8 @@ export function createUI(ctx) {
             <div class="stat"><span>${t('time')}</span><b class="r-time"></b></div>
             <div class="stat"><span>${t('delivered')}</span><b class="r-barrels"></b></div>
           </div>
-          <div class="btn-row"><button class="btn again" type="button">${t('again')}</button><button class="btn alt to-title" type="button">${t('menu')}</button></div>
+          <button class="btn next-level" type="button">${t('toLevel2')}</button>
+          <div class="btn-row"><button class="btn alt again" type="button">${t('again')}</button><button class="btn alt to-title" type="button">${t('menu')}</button></div>
         </div>
         <div class="card"><h3 class="display">${t('historyTitle')}</h3><p>${t('history')}</p></div>
       </div>
@@ -299,6 +300,7 @@ export function createUI(ctx) {
   $('.restart').addEventListener('click', doRestart);
   $('.again').addEventListener('click', doRestart);
   $('.retry').addEventListener('click', doRestart);
+  $('.next-level').addEventListener('click', () => { if (cur === 'won') events.emit('ui:level', { id: 2 }); });
   el.pauseBtn.addEventListener('click', doPause);
   root.querySelectorAll('.to-title').forEach((b) => b.addEventListener('click', () => events.emit('ui:title')));
 

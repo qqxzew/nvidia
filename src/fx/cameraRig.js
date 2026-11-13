@@ -95,17 +95,17 @@ export function createCameraRig(ctx) {
 
   // --- main menu: a short film about Světovar — slow dolly shots joined by dissolves ---------------
   // Every shot is framed in the right part of the screen (setViewOffset), the menu lives on the left.
-  const TITLE_C = new THREE.Vector3(-88, 0, 930);
+  const TITLE_C = new THREE.Vector3(-110, 0, 925);
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   const SHOTS = [
-    // aerial reveal of the whole complex, Radyně on the horizon
-    { p0: V(72, 56, 1082), p1: V(52, 46, 1036), l0: V(-82, 8, 928), l1: V(-88, 14, 922), fov: 48, dur: 11 },
-    // low in the field across the road: grass, the lattice fence, the chimney towering (photo 15)
-    { p0: V(46, 2.4, 788), p1: V(46, 2.8, 842), l0: V(-42, 26, 888), l1: V(-52, 22, 908), fov: 40, dur: 10 },
+    // aerial reveal of the whole complex from the south-east, as on the aerial postcard
+    { p0: V(66, 72, 1108), p1: V(38, 58, 1062), l0: V(-118, 6, 928), l1: V(-126, 12, 918), fov: 48, dur: 11 },
+    // low in the field across the road: grass, the lattice fence, the chimney towering (photo with the people)
+    { p0: V(46, 2.4, 760), p1: V(46, 2.8, 806), l0: V(-76, 22, 879.5), l1: V(-98, 18, 902), fov: 40, dur: 10 },
     // slow crane up the chimney with the brewhouse below and its smoke above
-    { p0: V(26, 12, 826), p1: V(20, 26, 852), l0: V(-44, 30, 892), l1: V(-44, 40, 892), fov: 44, dur: 9 },
-    // arrival: from the field road through the gate with its name board, the clock tower behind
-    { p0: V(34, 3.2, 918), p1: V(16, 3.6, 931), l0: V(-38, 10, 934), l1: V(-44, 12, 938), fov: 46, dur: 9 },
+    { p0: V(-30, 8, 836), p1: V(-36, 22, 850), l0: V(-76, 22, 879.5), l1: V(-76, 36, 879.5), fov: 44, dur: 9 },
+    // arrival: from the field road through the gate with its name board, wagons and the clock tower behind
+    { p0: V(34, 3.2, 925), p1: V(16, 3.6, 936), l0: V(-60, 9, 935), l1: V(-108, 13, 926), fov: 46, dur: 9 },
   ];
   const TOTAL = SHOTS.reduce((a, s) => a + s.dur, 0);
   const DISSOLVE = 0.8;
