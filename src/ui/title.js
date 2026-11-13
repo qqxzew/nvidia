@@ -2,6 +2,7 @@
 // a red label with heavy grotesque lettering (as on the brewery wagons) and solid printed plates as buttons. Language = three flags (direct switch), settings = quiet
 // icons in the bottom-right corner.
 // Views: main · levels · about · prologue.  Emits: ui:menu (open level 1 briefing), audio:volume, audio:mute.
+// Other levels open as their own page (?level=N).
 import './title.css';
 import { t, getLang, setLang, LANGS, langName, fmtTime } from './i18n.js';
 import { ICON } from './icons.js';
@@ -103,16 +104,21 @@ export function createTitle(ctx) {
     }).join('');
   }
 
-  const openLevel = () => events.emit('ui:menu'); // only level 1 exists: its briefing screen
+  // Level 1 runs on this page (its briefing screen); other levels are separate pages: ?level=N (src/boot.js).
+  function openLevel(id = 1) {
+    if (id === 1) { events.emit('ui:menu'); return; }
+    root.classList.add('leaving');
+    setTimeout(() => { location.href = `${location.pathname}?level=${id}`; }, 180);
+  }
   $('.tt-new').addEventListener('click', () => { progress.newGame(); render(); show('prologue'); });
-  $('.tt-cont').addEventListener('click', () => { if (progress.started) openLevel(); });
+  $('.tt-cont').addEventListener('click', () => { if (progress.started) openLevel(progress.nextLevel()); });
   $('.tt-levels').addEventListener('click', () => { render(); show('levels'); });
   $('.tt-about').addEventListener('click', () => show('about'));
   root.querySelectorAll('.tt-back').forEach((b) => b.addEventListener('click', () => show('main')));
-  $('.tt-go').addEventListener('click', openLevel);
+  $('.tt-go').addEventListener('click', () => openLevel(1));
   $('.tt-list').addEventListener('click', (e) => {
     const b = e.target.closest('.tt-level');
-    if (b && !b.disabled) openLevel();
+    if (b && !b.disabled) openLevel(Number(b.dataset.level));
   });
 
   // --- language: tap a flag ------------------------------------------------------------------

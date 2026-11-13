@@ -13,7 +13,6 @@ import './ui.css';
 import { t, barrels as barrelsText, fmtTime } from '../../ui/i18n.js';
 import { ICON, stamp } from '../../ui/icons.js';
 import { settings, saveSettings } from '../../ui/shared.js';
-import { levelSwitch } from '../../ui/ui.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
@@ -97,7 +96,7 @@ export function createUI3(ctx) {
           <div class="title display">${titleWords.join(' ')} <em>${titleLast}</em></div>
           <div class="sub">${t('g3subtitle')}</div>
           <button class="btn go" type="button">${t('g3start')}</button>
-          ${levelSwitch(3)}
+          <button class="btn alt sm to-title" type="button">${t('menu')}</button>
         </div>
         <div class="col">
           <p class="mission">${t('g3mission', { time: fmtTime(DURATION), max: barrelsText(MAX_STOLEN) })}</p>
@@ -112,6 +111,7 @@ export function createUI3(ctx) {
         <div class="col">
           <button class="btn resume" type="button">${t('resume')}</button>
           <button class="btn alt restart" type="button">${t('restart')}</button>
+          <button class="btn alt to-title" type="button">${t('menu')}</button>
         </div>
         <div class="col">
           <div class="setting"><div class="setting-head"><span>${t('volume')}</span><span class="val vol-val"></span></div>
@@ -131,7 +131,7 @@ export function createUI3(ctx) {
             <div class="stat"><span>${t('g3score')}</span><b class="r-score"></b></div>
             <div class="stat"><span>${t('g3stolen')}</span><b class="r-stolen"></b></div>
           </div>
-          <button class="btn again" type="button">${t('g3again')}</button>
+          <div class="btn-row"><button class="btn again" type="button">${t('g3again')}</button><button class="btn alt to-title" type="button">${t('menu')}</button></div>
         </div>
         <div class="card"><h3 class="display">${t('g3historyTitle')}</h3><p>${t('g3history')}</p></div>
       </div>
@@ -146,7 +146,7 @@ export function createUI3(ctx) {
             <div class="stat"><span>${t('g3score')}</span><b class="f-score"></b></div>
             <div class="stat"><span>${t('g3stolen')}</span><b class="f-stolen"></b></div>
           </div>
-          <button class="btn retry" type="button">${t('g3tryAgain')}</button>
+          <div class="btn-row"><button class="btn retry" type="button">${t('g3tryAgain')}</button><button class="btn alt to-title" type="button">${t('menu')}</button></div>
         </div>
         <div class="card"><p class="f-tip"></p></div>
       </div>
@@ -406,6 +406,11 @@ export function createUI3(ctx) {
   $('.restart').addEventListener('click', doRestart);
   $('.again').addEventListener('click', doRestart);
   $('.retry').addEventListener('click', doRestart);
+  // back to the main menu (it lives on the level-1 page, which opens on the title screen without params)
+  root.querySelectorAll('.to-title').forEach((b) => b.addEventListener('click', () => {
+    try { document.exitPointerLock?.(); } catch { /* ignore */ }
+    location.href = location.pathname;
+  }));
   el.pauseBtn.addEventListener('click', doPause);
   el.reloadBtn.addEventListener('pointerdown', (e) => {
     if (portrait) return;

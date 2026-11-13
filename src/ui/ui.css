@@ -117,17 +117,6 @@
 .hint { font-size: 15px; line-height: 1.36; color: var(--ink-2); margin: 0; padding-top: 12px; border-top: 1px solid var(--ink-line); }
 .menu-panel .btn { margin-top: 20px; width: 100%; }
 
-/* level switcher (menu of every level): two small paper tabs, the current one inked */
-.lvl-switch { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
-.lvl-b {
-  display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 4px 12px;
-  font-size: 15px; line-height: 1; color: var(--ink-2); text-decoration: none;
-  border: 1px solid var(--ink-3); border-radius: 4px; touch-action: manipulation;
-}
-.lvl-b:active { background: var(--ink-line); }
-.lvl-b.on { color: var(--paper); background: var(--ink); border-color: var(--ink); }
-.lvl-b:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-
 /* pause */
 .pause-panel { width: min(600px, 100%); padding: 20px 32px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
 .pause-panel .head { grid-column: 1 / -1; }
@@ -300,8 +289,6 @@ input[type=range]:focus-visible { outline: 2px solid var(--red); outline-offset:
   .menu-panel .title { font-size: 40px; }
   .mission { font-size: 16px; margin-bottom: 8px; }
   .menu-panel .btn { min-height: 52px; margin-top: 16px; }
-  .lvl-switch { margin-top: 8px; }
-  .lvl-b { min-height: 32px; }
   .pause-panel h2, .res-panel h2 { font-size: 28px; }
   .res-panel { padding: 16px 28px 20px; gap: 8px 28px; }
   .res-panel .btn { min-height: 52px; }

@@ -7,6 +7,8 @@ import { createGangsters } from './gangsters.js';
 import { createShotgun } from './shotgun.js';
 import { createUI3 } from './ui.js';
 import { createAudio3 } from './audio.js';
+import { progress } from '../../core/progress.js';
+import { t } from '../../ui/i18n.js';
 
 // Level 3 "Gangsteři ve Světovaru" — game loop, state machine, shooting, barrels and score.
 // Contract between the modules: docs/LEVEL3.md.
@@ -18,7 +20,7 @@ const quality = params.get('q') || (isMobile ? 'low' : 'high');
 const god = !!params.get('god');
 const C = CONFIG3;
 
-document.title = 'Plzeň 1929 – Gangsteři ve Světovaru';
+document.title = `${t('g3subtitle').split('·')[0].trim()} – ${t('g3title')}`;
 
 // --- renderer --------------------------------------------------------------------------------
 const app = document.getElementById('app');
@@ -192,6 +194,7 @@ function finish() {
   G.score += kept * C.score.perBarrelLeft;
   const stars = G.stolen === 0 ? 3 : G.stolen <= 1 ? 2 : 1;
   G.result = { time: G.time, stolen: G.stolen, stars, score: G.score };
+  progress.complete(3, { stars, time: G.time });
   setState('won');
   events.emit('finish', { time: G.time, stolen: G.stolen, stars, score: G.score });
 }

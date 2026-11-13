@@ -4,7 +4,14 @@ const KEY = 'plzen1926.progress.v1';
 export const LEVELS = [
   { id: 1, key: 'level1', playable: true },
   { id: 2, key: 'level2', playable: false }, // in preparation
+  { id: 3, key: 'level3', playable: true },  // src/levels/gangsters (?level=3)
 ];
+
+/** first playable level after `id` (levels still in preparation are skipped), or id + 1 */
+function nextPlayable(id) {
+  const n = LEVELS.find((l) => l.playable && l.id > id);
+  return n ? n.id : id + 1;
+}
 
 function load() {
   try { return { started: false, reached: 0, best: {}, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
@@ -30,7 +37,7 @@ export const progress = {
     const b = data.best[id];
     if (!b || stars > b.stars || (stars === b.stars && time < b.time)) data.best[id] = { stars, time: Math.round(time * 10) / 10 };
     data.started = true;
-    data.reached = Math.max(data.reached, id + 1);
+    data.reached = Math.max(data.reached, nextPlayable(id));
     save();
   },
 };

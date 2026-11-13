@@ -27,6 +27,8 @@ const STRINGS = {
     level1Desc: 'Sudy z náměstí do Světovaru',
     level2Name: 'Válení sudů ve sklepě',
     level2Desc: 'Připravujeme',
+    level3Name: 'Gangsteři ve Světovaru',
+    level3Desc: 'Noční obrana varny před zloději sudů',
     locked: 'Zamčeno',
     best: 'Nejlepší {time}',
     aboutText:
@@ -105,8 +107,6 @@ const STRINGS = {
     rotateSub: 'Hra se hraje na šířku',
 
     // level switcher (menu of every level)
-    levelN: 'Level {n}',
-    levelPick: 'Výběr levelu',
 
     // ---------------- level 3 "Gangsteři ve Světovaru" ----------------
     g3title: 'Gangsteři ve Světovaru',
@@ -185,6 +185,8 @@ const STRINGS = {
     level1Desc: 'Barrels from the square to Světovar',
     level2Name: 'Rolling barrels in the cellar',
     level2Desc: 'Coming soon',
+    level3Name: 'Gangsters at Světovar',
+    level3Desc: 'Guard the brewhouse from barrel thieves by night',
     locked: 'Locked',
     best: 'Best {time}',
     aboutText:
@@ -255,6 +257,56 @@ const STRINGS = {
 
     rotate: 'Turn your phone sideways',
     rotateSub: 'The game is played in landscape',
+
+
+    // ---------------- level 3 "Gangsters at Světovar" ----------------
+    // (g3stamp* stay Czech in every language, like the level-1 stamp: they fall back to cs)
+    g3title: 'Gangsters at Světovar',
+    g3subtitle: 'Pilsen 1929 · the night watch',
+    // {time} m:ss, {max} barrels ("3 barrels")
+    g3mission:
+      'You are the night watchman of the Světovar brewery. Gangsters are forcing their way in through the windows to make off with the beer barrels. Your shotgun is loaded with rock salt. Hold out for {time} until the police arrive, and don’t let them carry off more than {max}. Never shoot the watchman with the lantern!',
+    g3hintTouch: 'Drag your finger to aim, tap or press Fire to shoot, press Reload to reload.',
+    g3hintKeys: 'Aim with the mouse, click to shoot, R to reload',
+    g3hintKeys2: 'Esc – pause',
+    g3clickToAim: 'Click into the game – then aim with the mouse',
+    g3fire: 'Fire',
+    g3start: 'Report for duty',
+    g3go: 'On guard',
+
+    g3timeLabel: 'Police in',
+    g3stolenCount: 'Stolen {stolen} of {max}',
+    g3barrelsLabel: 'Barrels in the hall',
+    g3scoreLabel: 'Score',
+    g3shellsLabel: 'Shells',
+    g3reload: 'Reload',
+    g3reloadKey: 'Reload – R',
+    g3reloading: 'Reloading…',
+    g3toastStolen: 'Barrel stolen',
+    g3toastStolenCount: 'stolen {stolen} of {max}',
+    g3toastLastChance: 'Not one more may go',
+    g3toastInnocent: 'That was the watchman!',
+    g3toastInnocentSub: 'Don’t shoot the man with the lantern',
+    g3toastRecovered: 'Barrel saved',
+
+    g3noteKind: 'Night watch report',
+    g3noteWhere: 'Světovar, 1929',
+    g3winTitle: 'The police have arrived',
+    g3winLine1: 'Not a single barrel missing',
+    g3winLine2: 'A good watch, the hall held',
+    g3winLine3: 'Held, but it was a close call',
+    g3score: 'Score',
+    g3stolen: 'Barrels stolen',
+    g3again: 'Another night',
+    // TODO: fact-check
+    g3history:
+      'Světovar brewed beer from 1913 to 1933 – the very years when Prohibition (1920–1933) held sway in America and gangsters ran the beer trade there. The sprawling works in Bory had its own railway siding, and at night watchmen made their rounds.',
+    g3historyTitle: 'From history',
+    g3failBarrels: 'The gangsters got away with too many barrels',
+    g3failOther: 'The night watch ended badly',
+    g3tipBarrels: 'Shoot the ones already holding a barrel first – and reload while it’s quiet.',
+    g3tipOther: 'Keep an eye on every window and reload in good time.',
+    g3tryAgain: 'Try again',
   },
 
   de: {
@@ -280,6 +332,8 @@ const STRINGS = {
     level1Desc: 'Fässer vom Marktplatz zum Světovar',
     level2Name: 'Fässerrollen im Keller',
     level2Desc: 'In Vorbereitung',
+    level3Name: 'Gangster im Světovar',
+    level3Desc: 'Nachts das Sudhaus gegen Fassdiebe verteidigen',
     locked: 'Gesperrt',
     best: 'Bestzeit {time}',
     aboutText:
@@ -350,6 +404,56 @@ const STRINGS = {
 
     rotate: 'Drehe dein Handy quer',
     rotateSub: 'Das Spiel wird im Querformat gespielt',
+
+
+    // ---------------- Level 3 "Gangster im Světovar" ----------------
+    // (g3stamp* bleiben in jeder Sprache tschechisch, wie der Stempel in Level 1: Fallback auf cs)
+    g3title: 'Gangster im Světovar',
+    g3subtitle: 'Pilsen 1929 · Nachtwache',
+    // {time} m:ss, {max} Fässer ("3 Fässer")
+    g3mission:
+      'Du bist der Nachtwächter der Brauerei Světovar. Gangster dringen durch die Fenster ein und wollen die Bierfässer fortschleppen. Deine Flinte ist mit Salz geladen. Halte {time} durch, bis die Polizei eintrifft, und lass sie nicht mehr als {max} davontragen. Den Wächter mit der Laterne niemals anschießen!',
+    g3hintTouch: 'Mit dem Finger ziehen zum Zielen, tippen oder „Feuer“ drücken zum Schießen, „Laden“ lädt nach.',
+    g3hintKeys: 'Mit der Maus zielen, Klick zum Schießen, R lädt nach',
+    g3hintKeys2: 'Esc – Pause',
+    g3clickToAim: 'Ins Spiel klicken – dann zielt die Maus',
+    g3fire: 'Feuer',
+    g3start: 'Wache antreten',
+    g3go: 'Aufgepasst',
+
+    g3timeLabel: 'Polizei in',
+    g3stolenCount: 'Gestohlen {stolen} von {max}',
+    g3barrelsLabel: 'Fässer in der Halle',
+    g3scoreLabel: 'Punkte',
+    g3shellsLabel: 'Patronen',
+    g3reload: 'Laden',
+    g3reloadKey: 'Laden – R',
+    g3reloading: 'Lade nach…',
+    g3toastStolen: 'Fass gestohlen',
+    g3toastStolenCount: 'gestohlen {stolen} von {max}',
+    g3toastLastChance: 'Kein einziges darf mehr fehlen',
+    g3toastInnocent: 'Das war der Wächter!',
+    g3toastInnocentSub: 'Nicht auf den Mann mit der Laterne schießen',
+    g3toastRecovered: 'Fass gerettet',
+
+    g3noteKind: 'Bericht der Nachtwache',
+    g3noteWhere: 'Světovar, 1929',
+    g3winTitle: 'Die Polizei ist da',
+    g3winLine1: 'Kein einziges Fass fehlt',
+    g3winLine2: 'Gute Wache, die Halle ist gehalten',
+    g3winLine3: 'Gehalten, aber es war knapp',
+    g3score: 'Punkte',
+    g3stolen: 'Gestohlene Fässer',
+    g3again: 'Noch eine Nacht',
+    // TODO: fact-check
+    g3history:
+      'Der Světovar braute von 1913 bis 1933 Bier – genau in den Jahren, als in Amerika die Prohibition galt (1920–1933) und Gangster dort den Bierhandel beherrschten. Das weitläufige Gelände in Bory hatte ein eigenes Anschlussgleis, und nachts drehten Wächter ihre Runden.',
+    g3historyTitle: 'Aus der Geschichte',
+    g3failBarrels: 'Die Gangster haben zu viele Fässer erbeutet',
+    g3failOther: 'Die Nachtwache ging schief',
+    g3tipBarrels: 'Zuerst auf die schießen, die schon ein Fass tragen – und nachladen, solange es ruhig ist.',
+    g3tipOther: 'Behalte alle Fenster im Blick und lade rechtzeitig nach.',
+    g3tryAgain: 'Nochmal versuchen',
   },
 };
 
