@@ -1,4 +1,4 @@
-// Level 5 "Šílená stáčírna" — the racking hall conveyor puzzle (owner: lead). Loaded by src/main.js on ?level=5.
+// Level 5 "Šílená stáčírna" — the racking hall conveyor puzzle (owner: lead). Loaded by src/boot.js on ?level=5.
 // Wires: renderer + fixed top-down camera + grading, hall + belts + barrels (art), line simulation (gameplay),
 // UI + audio (ui). See docs/LEVEL5.md for the contract.
 //

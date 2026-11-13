@@ -1,4 +1,4 @@
-// Level 4 "Varna" — first-person run across the brewhouse catwalks (owner: lead). Loaded by src/main.js on ?level=4.
+// Level 4 "Varna" — first-person run across the brewhouse catwalks (owner: lead). Loaded by src/boot.js on ?level=4.
 // Wires: renderer + first-person camera + grading, factory interior + hazards (art), runner simulation (gameplay),
 // UI + audio (ui). See docs/LEVEL4.md for the contract.
 //

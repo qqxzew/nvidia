@@ -39,7 +39,7 @@ from them (`../fx/grading.js`, `../ui/ui.css`, `../ui/icons.js`, `../ui/i18n.js`
 ## Files and owners
 | File | Owner | Export |
 |---|---|---|
-| `src/main.js`, `src/level5/main.js`, `src/level5/config.js`, `src/core/paths.js`, `docs/LEVEL5.md` | lead | — |
+| `src/boot.js`, `src/level5/main.js`, `src/level5/config.js`, `src/core/paths.js`, `docs/LEVEL5.md` | lead | — |
 | `src/level5/hall.js`, `src/level5/textures.js` | art | `buildHall(ctx)` |
 | `src/level5/line.js`, `scripts/level5-sim.mjs` | gameplay | `createLine(ctx)` |
 | `src/level5/ui.js`, `src/level5/ui5.css`, `src/level5/i18n.js`, `src/level5/audio.js` | ui | `createUI5(ctx)`, `createAudio5(ctx)` |

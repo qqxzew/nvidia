@@ -1,0 +1,139 @@
+/* Main menu: a small printed paper ticket (same paper as the in-game screens) over the Světovar film.
+   Heavy grotesque lettering (Archivo, wide cut — like "PLZEŇSKÝ SVĚTOVAR" on the brewery wagons),
+   brewery red + dark brown ink on cream paper. */
+
+@font-face { font-family: 'Archivo'; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+  src: url('/fonts/archivo-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Archivo'; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+  src: url('/fonts/archivo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+.plz-title {
+  --grot: 'Archivo', 'Arial Narrow', Arial, sans-serif;
+  --gut: max(32px, calc(var(--sl) + 20px));
+  --shadow: 0 3px 0 rgba(20, 12, 6, .45), 0 10px 24px rgba(20, 12, 6, .3);
+  color: var(--ink);
+  pointer-events: none; opacity: 0; visibility: hidden;
+  transition: opacity .4s var(--ease), visibility 0s linear .4s;
+}
+.plz-title.on { opacity: 1; visibility: visible; transition-delay: 0s; }
+.plz-title.leaving { opacity: 0; }
+.plz-title.on .tt-flags, .plz-title.on .tt-col, .plz-title.on .tt-bar { pointer-events: auto; }
+.plz-title :where(button) { background: none; border: 0; padding: 0; color: inherit; font: inherit; }
+
+/* light shade only, the plates carry their own contrast */
+.plz-title::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to right, rgba(20, 12, 6, .38) 0%, rgba(20, 12, 6, 0) 46%); }
+
+/* ---------- flags (top-left) ---------- */
+.tt-flags { position: absolute; top: max(10px, var(--st)); left: calc(var(--gut) - 6px); display: flex; gap: 2px; }
+.tt-flags button { padding: 6px; border-radius: 4px; opacity: .5; cursor: pointer; transition: opacity .2s var(--ease), transform .2s var(--ease); }
+.tt-flags button svg { width: 30px; height: 20px; border-radius: 2px; box-shadow: 0 2px 6px rgba(20, 12, 6, .45); }
+.tt-flags button.cur { opacity: 1; transform: scale(1.12); }
+.tt-flags button:hover { opacity: .85; }
+
+/* ---------- the card: a small printed paper ticket, sized to its content ---------- */
+.tt-col { position: absolute; left: var(--gut); top: 50%; transform: translateY(-50%); width: min(288px, 40vw);
+  max-height: calc(100% - 72px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; padding: 16px 20px 18px;
+  background-color: var(--paper); background-image: var(--tex); color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 3px;
+  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--ink-3), 0 10px 28px rgba(20, 12, 6, .38); }
+
+/* title printed in brewery red */
+.tt-logo { margin: 0 0 14px; display: flex; flex-direction: column; }
+.tt-logo .small { font: 600 12px/1.2 var(--grot); font-stretch: 100%; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); }
+.tt-logo .big { font: 850 26px/1 var(--grot); font-stretch: 108%; text-transform: uppercase; letter-spacing: .01em; margin-top: 4px; color: var(--red); }
+.plz-title.sub .tt-logo { display: none; }
+
+.tt-view { display: none; flex-direction: column; align-items: stretch; gap: 8px; }
+.tt-view.on { display: flex; animation: ttIn .25s var(--ease) both; }
+@keyframes ttIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* buttons printed on the ticket */
+.tt-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 14px;
+  background: transparent; color: var(--ink); border: 1px solid var(--ink-3); border-radius: 3px;
+  font: 760 16px/1 var(--grot); font-stretch: 106%; text-transform: uppercase; letter-spacing: .03em; text-align: left; cursor: pointer;
+  transition: transform .1s var(--ease), background-color .15s var(--ease); }
+.tt-item.primary { background: var(--red); color: var(--paper); border-color: var(--red-dk); box-shadow: 0 2px 0 var(--red-dk); min-height: 48px; font-size: 18px; }
+.tt-item:hover { background: var(--ink-line); }
+.tt-item.primary:hover { background: #a8321f; }
+.tt-item:active { transform: translateY(2px); }
+.tt-item.primary:active { box-shadow: none; }
+.tt-item:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.tt-item .meta { font: 600 12px/1 var(--grot); font-stretch: 100%; letter-spacing: .02em; text-transform: none; color: var(--ink-2); }
+.tt-item:disabled { opacity: .45; cursor: default; }
+.tt-item:disabled:hover { background: transparent; }
+.tt-item:disabled:active { transform: none; }
+.tt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tt-row .tt-item { justify-content: center; font-size: 14px; min-height: 40px; padding: 0 8px; }
+
+/* sub views live inside the same ticket */
+.tt-panel { display: flex; flex-direction: column; }
+.tt-head { font: 800 14px/1 var(--grot); font-stretch: 110%; text-transform: uppercase; letter-spacing: .06em; color: var(--red); margin-bottom: 10px; }
+.tt-note { margin: 0 0 8px; font-size: 14px; line-height: 1.4; color: var(--ink-2); }
+.tt-text { margin: 0 0 8px; font-size: 15px; line-height: 1.42; }
+.tt-back { align-self: flex-start; min-height: 36px; padding: 0 2px; color: var(--ink-2);
+  font: 700 13px/1 var(--grot); font-stretch: 105%; text-transform: uppercase; letter-spacing: .05em; cursor: pointer; }
+.tt-back::before { content: '← '; }
+.tt-back:hover { color: var(--ink); }
+
+.tt-list { margin: 0; padding: 0; list-style: none; }
+.tt-level { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 0;
+  text-align: left; cursor: pointer; }
+.tt-list li + li .tt-level { box-shadow: inset 0 1px 0 var(--ink-line); }
+.tt-level .num { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 3px;
+  background: var(--red); color: var(--paper); font: 850 15px/1 var(--grot); }
+.tt-level .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tt-level .txt b { font: 750 13px/1.15 var(--grot); font-stretch: 104%; text-transform: uppercase; letter-spacing: .02em; }
+.tt-level .txt span { font-size: 13px; color: var(--ink-2); }
+.tt-level .right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.tt-level .stars { display: flex; gap: 2px; color: var(--red); }
+.tt-level .stars i { display: block; width: 12px; height: 12px; }
+.tt-level .stars svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 4; }
+.tt-level .stars i.got svg { fill: currentColor; }
+.tt-level .meta { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tt-level .lock { width: 16px; height: 16px; color: var(--ink-3); }
+.tt-level.off { cursor: default; }
+.tt-level.off .num { background: var(--ink-3); }
+.tt-level.off .txt b { color: var(--ink-2); }
+
+.tt-quote { margin: 0 0 4px; }
+.tt-quote p { margin: 0 0 8px; font-size: 14px; line-height: 1.42; }
+.tt-quote footer { font-size: 13px; color: var(--ink-2); }
+
+/* ---------- settings (bottom-right) ---------- */
+.tt-bar { position: absolute; right: max(16px, var(--sr)); bottom: max(12px, var(--sb)); display: flex; align-items: center; gap: 4px;
+  padding: 0 8px; height: 44px; border-radius: 2px; background: var(--enamel); color: var(--cream); box-shadow: var(--shadow); }
+.tt-ico { width: 36px; height: 36px; padding: 7px; display: flex; align-items: center; justify-content: center; border-radius: 2px; color: var(--cream); cursor: pointer; }
+.tt-ico:active { background: rgba(239, 228, 198, .12); }
+.tt-ico svg { width: 22px; height: 22px; }
+.tt-ico.muted { color: var(--cream-3); }
+.tt-vol { width: clamp(80px, 12vw, 128px); height: 32px; margin: 0 4px; }
+.tt-vol::-webkit-slider-runnable-track { height: 4px !important; border-radius: 2px; background: linear-gradient(to right, var(--cream) var(--v, 80%), rgba(239, 228, 198, .25) var(--v, 80%)) !important; }
+.tt-vol::-moz-range-track { height: 4px !important; background: linear-gradient(to right, var(--cream) var(--v, 80%), rgba(239, 228, 198, .25) var(--v, 80%)) !important; }
+.tt-vol::-webkit-slider-thumb { width: 16px !important; height: 16px !important; margin-top: -6px !important; background: var(--cream) !important; border: 0 !important; }
+.tt-vol::-moz-range-thumb { width: 16px !important; height: 16px !important; background: var(--cream) !important; border: 0 !important; }
+.tt-flags button:focus-visible, .tt-level:focus-visible, .tt-back:focus-visible, .tt-ico:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
+
+/* ---------- entrance (only when the menu opens) ---------- */
+.plz-title.intro .tt-col { animation: ttCard .6s var(--ease) .15s both; }
+.plz-title.intro .tt-flags, .plz-title.intro .tt-bar { animation: ttFade .6s var(--ease) .5s both; }
+@keyframes ttCard { from { opacity: 0; transform: translateY(calc(-50% + 12px)); } to { opacity: 1; transform: translateY(-50%); } }
+@keyframes ttFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- sizes ---------- */
+@media (min-height: 640px) {
+  .tt-col { width: min(340px, 40vw); padding: 24px 28px 26px; }
+  .tt-logo { margin-bottom: 20px; }
+  .tt-logo .small { font-size: 14px; }
+  .tt-logo .big { font-size: 32px; }
+  .tt-item { min-height: 52px; font-size: 18px; }
+  .tt-item.primary { min-height: 56px; font-size: 20px; }
+  .tt-row .tt-item { min-height: 48px; font-size: 16px; }
+  .tt-quote p, .tt-text { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-view.on, .plz-title.intro .tt-col, .plz-title.intro .tt-flags, .plz-title.intro .tt-bar { animation: none; }
+}

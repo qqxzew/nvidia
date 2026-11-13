@@ -38,7 +38,7 @@ Result: time left + hits → 1–3 stars.
 ## Files and owners
 | File | Owner | Export |
 |---|---|---|
-| `src/main.js`, `src/level4/main.js`, `src/level4/config.js`, `src/core/paths.js`, `docs/LEVEL4.md` | lead | — |
+| `src/boot.js`, `src/level4/main.js`, `src/level4/config.js`, `src/core/paths.js`, `docs/LEVEL4.md` | lead | — |
 | `src/level4/course.js` (hazard list + timing helpers), `src/level4/runner.js`, `scripts/level4-sim.mjs` | gameplay | `COURSE`, `buildCourse`, helpers, `createRunner(ctx)` |
 | `src/level4/factory.js`, `src/level4/textures.js` (keep level-5 exports!) | art | `buildFactory(ctx)` |
 | `src/level4/ui.js`, `src/level4/ui4.css`, `src/level4/i18n.js`, `src/level4/audio.js` | ui | `createUI4(ctx)`, `createAudio4(ctx)` |

@@ -93,5 +93,52 @@ export function createCameraRig(ctx) {
     camera.position.copy(pos); camera.lookAt(look);
   }
 
-  return { update, snap, introMenu, introFly };
+  // --- main menu: a short film about Světovar — slow dolly shots joined by dissolves ---------------
+  // Every shot is framed in the right part of the screen (setViewOffset), the menu lives on the left.
+  const TITLE_C = new THREE.Vector3(-110, 0, 925);
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const SHOTS = [
+    // aerial reveal of the whole complex from the south-east, as on the aerial postcard
+    { p0: V(66, 72, 1108), p1: V(38, 58, 1062), l0: V(-118, 6, 928), l1: V(-126, 12, 918), fov: 48, dur: 11 },
+    // low in the field across the road: grass, the lattice fence, the chimney towering (photo with the people)
+    { p0: V(46, 2.4, 760), p1: V(46, 2.8, 806), l0: V(-76, 22, 879.5), l1: V(-98, 18, 902), fov: 40, dur: 10 },
+    // slow crane up the chimney with the brewhouse below and its smoke above
+    { p0: V(-30, 8, 836), p1: V(-36, 22, 850), l0: V(-76, 22, 879.5), l1: V(-76, 36, 879.5), fov: 44, dur: 9 },
+    // arrival: from the field road through the gate with its name board, wagons and the clock tower behind
+    { p0: V(34, 3.2, 925), p1: V(16, 3.6, 936), l0: V(-60, 9, 935), l1: V(-108, 13, 926), fov: 46, dur: 9 },
+  ];
+  const TOTAL = SHOTS.reduce((a, s) => a + s.dur, 0);
+  const DISSOLVE = 0.8;
+  let offsetOn = false;
+  let tt = 0;
+  const lp = new THREE.Vector3();
+  const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x); // ease-in-out sine
+
+  /** Advance the menu film; returns the dip-to-dark amount 0..1 for the grade (dissolves between shots). */
+  function titleShots(dt) {
+    tt += dt;
+    let u = tt % TOTAL, i = 0;
+    while (u > SHOTS[i].dur) { u -= SHOTS[i].dur; i++; }
+    const s = SHOTS[i];
+    rig.shot = i;
+    const k = ease(u / s.dur);
+    camera.position.lerpVectors(s.p0, s.p1, k);
+    lp.lerpVectors(s.l0, s.l1, k);
+    camera.lookAt(lp);
+    if (camera.fov !== s.fov) { camera.fov = s.fov; }
+    const w = innerWidth, h = innerHeight;
+    camera.setViewOffset(w, h, -w * 0.2, 0, w, h); // also updates the projection matrix
+    offsetOn = true;
+    const edge = Math.min(u, s.dur - u);
+    const open = Math.max(0, 1 - tt / 1.6); // fade in from dark when the menu opens
+    return Math.max(open, edge < DISSOLVE ? 1 - edge / DISSOLVE : 0);
+  }
+  function titleReset() { tt = 0; }
+  function titleSeek(x) { tt = x; } // debug: jump to a moment of the menu film
+  function clearOffset() {
+    if (offsetOn) { camera.clearViewOffset(); offsetOn = false; camera.fov = K.fov; camera.updateProjectionMatrix(); }
+  }
+
+  const rig = { update, snap, introMenu, introFly, titleShots, titleReset, titleSeek, clearOffset, titleCenter: TITLE_C, shot: 0 };
+  return rig;
 }

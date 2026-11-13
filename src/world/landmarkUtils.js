@@ -38,7 +38,7 @@ const LAYOUT = {
   svetovar: [0, 4, 2, 1], malt: [2, 4], plinth: [3, 4], white: [4, 4], loadDoor: [5, 4], poster: [6, 4], winPair: [7, 4],
   cpp: [0, 5, 4, 1], shopB: [4, 5], winShutter: [5, 5], sgrafFig: [6, 5], ashlarDark: [7, 5],
   wagonEnd: [0, 6], winRound: [1, 6], arcadeWin: [2, 6], glass: [3, 6], tile: [4, 6], brickDark: [5, 6], grass: [6, 6], earth: [7, 6],
-  brickGrey: [0, 7],
+  brickGrey: [0, 7], rusticArch: [1, 7], winTriple: [2, 7], dormerWin: [3, 7], louver: [4, 7], plinthWin: [5, 7], clockFace: [6, 7], corniceHeavy: [7, 7],
 };
 
 let KIT = null;
@@ -58,6 +58,7 @@ export function getKit(ctx) {
   const cobbleTex = canvasTex(paintCobbles(), { repeat: true, aniso });
   const latticeTex = canvasTex(paintLattice(), { aniso: Math.min(4, aniso) });
   const smokeTex = canvasTex(paintSmoke(), {});
+  const roofHeroTex = canvasTex(paintRoofHero(), { repeat: true, aniso });
 
   const mats = {
     wall: new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true }),
@@ -66,10 +67,14 @@ export function getKit(ctx) {
     ground: new THREE.MeshLambertMaterial({ map: cobbleTex, vertexColors: true }),
     lattice: new THREE.MeshLambertMaterial({ map: latticeTex, alphaTest: 0.5, side: THREE.DoubleSide }),
     smoke: makeSmokeMaterial(smokeTex),
+    // Světovar (menu hero): roof texture readable from 100–200 m, and a darker coal-smoke material
+    roofHero: new THREE.MeshLambertMaterial({ map: roofHeroTex, vertexColors: true, side: THREE.DoubleSide }),
+    smokeDark: makeSmokeMaterial(smokeTex, 0xa49d94),
   };
   mats.wall.name = 'lm-wall'; mats.roof.name = 'lm-roof'; mats.props.name = 'lm-props';
   mats.ground.name = 'lm-ground'; mats.lattice.name = 'lm-lattice'; mats.smoke.name = 'lm-smoke';
-  KIT = { tiles, mats, textures: { atlasTex, roofTex, cobbleTex, latticeTex, smokeTex } };
+  mats.roofHero.name = 'lm-roof-hero'; mats.smokeDark.name = 'lm-smoke-dark';
+  KIT = { tiles, mats, textures: { atlasTex, roofTex, cobbleTex, latticeTex, smokeTex, roofHeroTex } };
   return KIT;
 }
 
@@ -83,8 +88,9 @@ function canvasTex(cv, { repeat = false, aniso = 1 } = {}) {
   return t;
 }
 
-function makeSmokeMaterial(map) {
-  const m = new THREE.MeshLambertMaterial({ map, transparent: true, depthWrite: false, color: 0xeeeae2 });
+function makeSmokeMaterial(map, color = 0xeeeae2) {
+  // emissive share keeps backlit smoke from turning into black blobs at dusk
+  const m = new THREE.MeshLambertMaterial({ map, transparent: true, depthWrite: false, color, emissive: new THREE.Color(color).multiplyScalar(0.5) });
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float aAlpha;\nvarying float vAlpha;')
@@ -467,6 +473,69 @@ function paintAtlas() {
       fitText(g, 'ČESKÝ PLZEŇSKÝ PIVOVAR', x + w / 2, y + h / 2 - 4, w - 40, 'bold 48px Georgia, "Times New Roman", serif', '#f1e3b6');
       fitText(g, 'AKCIOVÁ SPOLEČNOST · SVĚTOVAR', x + w / 2, y + h - 22, w - 140, 'bold 14px Georgia, serif', '#cdb985');
     },
+    // --- Světovar hero tiles (row 7)
+    rusticArch(x, y, w, h) {
+      // rusticated ground floor: deep horizontal joints + round-arched window with a keystone
+      plaster(g, R, x, y, w, h, '#e4dccb', 0.14);
+      g.fillStyle = 'rgba(55,45,35,0.34)'; for (let yy = y + 12; yy < y + h; yy += 15) g.fillRect(x, yy, w, 3);
+      g.fillStyle = 'rgba(255,252,242,0.35)'; for (let yy = y + 15; yy < y + h; yy += 15) g.fillRect(x, yy, w, 2);
+      windowPaint(g, x + w / 2, y + 30, 46, 80, { arch: 'round', head: 'key', rows: 3, cols: 2, fw: 7 });
+      g.fillStyle = 'rgba(255,253,246,0.95)'; g.fillRect(x + w / 2 - 7, y + 14, 14, 16);
+    },
+    winTriple(x, y, w, h) {
+      // Art Nouveau triple window with a segmental head and an ornamental panel below
+      plaster(g, R, x, y, w, h, '#ede5d3');
+      g.fillStyle = 'rgba(255,253,246,0.95)'; winPath(g, x + 10, y + 16, w - 20, 92, 'seg'); g.fill();
+      for (const [ox, ww] of [[-36, 24], [0, 34], [36, 24]]) windowPaint(g, x + w / 2 + ox, y + 26, ww, 72, { head: null, rows: 3, cols: 1, fw: 2, sill: false, frame: 'rgba(250,246,236,1)' });
+      g.fillStyle = 'rgba(255,253,246,0.95)'; g.fillRect(x + 8, y + 104, w - 16, 7);
+      g.fillStyle = 'rgba(150,120,80,0.4)'; for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(x + 22 + i * 17, y + 118, 4, 0, Math.PI * 2); g.fill(); }
+    },
+    dormerWin(x, y, w, h) {
+      // dormer front: a big dark window that still reads from far away
+      plaster(g, R, x, y, w, h, '#ece6d8', 0);
+      windowPaint(g, x + w / 2, y + 22, 76, 88, { arch: 'seg', head: null, rows: 2, cols: 2, fw: 8, sill: true });
+    },
+    louver(x, y, w, h) {
+      // round-arched opening with timber louvres (vent turrets, lanterns)
+      plaster(g, R, x, y, w, h, '#ece6d8', 0);
+      g.fillStyle = 'rgba(255,253,246,0.95)'; winPath(g, x + 22, y + 10, w - 44, h - 16, 'round'); g.fill();
+      g.fillStyle = '#2a2420'; winPath(g, x + 30, y + 18, w - 60, h - 28, 'round'); g.fill();
+      g.fillStyle = '#6a5a48'; for (let yy = y + 50; yy < y + h - 14; yy += 10) g.fillRect(x + 30, yy, w - 60, 5);
+    },
+    plinthWin(x, y, w, h) {
+      // stone plinth with a small barred cellar window
+      ashlar(g, R, x, y, w, h, '#a8a296', 20, 'rgba(50,45,40,0.6)');
+      g.fillStyle = '#c9c2b4'; g.fillRect(x + w / 2 - 30, y + 30, 60, 50);
+      g.fillStyle = '#1e2226'; g.fillRect(x + w / 2 - 24, y + 36, 48, 38);
+      g.fillStyle = 'rgba(120,110,100,0.9)'; for (let xx = x + w / 2 - 18; xx < x + w / 2 + 24; xx += 10) g.fillRect(xx, y + 36, 3, 38);
+    },
+    clockFace(x, y, w, h) {
+      // large dial filling the tile: stone surround, gilt ring, white face, bold hour marks
+      const cx = x + w / 2, cy = y + h / 2;
+      plaster(g, R, x, y, w, h, '#ece6d8', 0);
+      g.fillStyle = '#d6ccb8'; g.beginPath(); g.arc(cx, cy, 63, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#b8964a'; g.beginPath(); g.arc(cx, cy, 57, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#26231f'; g.beginPath(); g.arc(cx, cy, 53, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#f6f1e4'; g.beginPath(); g.arc(cx, cy, 49, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#1f1c19';
+      for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.save(); g.translate(cx + Math.sin(a) * 41, cy - Math.cos(a) * 41); g.rotate(a); g.fillRect(-2.5, -7, i % 3 ? 4 : 7, 14); g.restore(); }
+      g.strokeStyle = '#1d1a17'; g.lineCap = 'round';
+      g.lineWidth = 6; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx - 22, cy - 13); g.stroke();
+      g.lineWidth = 4; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + 22, cy - 30); g.stroke();
+      g.lineCap = 'butt';
+      g.fillStyle = '#b8964a'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+    },
+    corniceHeavy(x, y, w, h) {
+      // main cornice seen from the street: lit crown moulding, dentils, deep shadow below
+      plaster(g, R, x, y, w, h, '#f1ebdf', 0);
+      g.fillStyle = 'rgba(255,255,250,0.85)'; g.fillRect(x, y, w, 30);
+      g.fillStyle = 'rgba(60,50,40,0.22)'; g.fillRect(x, y + 30, w, 8);
+      g.fillStyle = 'rgba(255,255,250,0.6)'; g.fillRect(x, y + 38, w, 26);
+      g.fillStyle = 'rgba(55,45,35,0.42)'; for (let xx = x + 2; xx < x + w; xx += 14) g.fillRect(xx, y + 44, 7, 16);
+      g.fillStyle = 'rgba(55,45,35,0.5)'; g.fillRect(x, y + 64, w, 14);
+      g.fillStyle = 'rgba(55,45,35,0.25)'; g.fillRect(x, y + 78, w, 20);
+      g.fillStyle = 'rgba(255,255,250,0.5)'; g.fillRect(x, y + 100, w, 8);
+    },
   };
   for (const [name, [cx, cy, cw = 1, ch = 1]] of Object.entries(LAYOUT)) {
     const x = cx * TP, y = cy * TP, w = cw * TP, h = ch * TP;
@@ -518,6 +587,52 @@ function paintRoof() {
     gr.addColorStop(0, `rgba(${R() < 0.5 ? '90,95,60' : '60,50,40'},${0.12 + R() * 0.12})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr; g.fillRect(cx - r, cy - r, r * 2, r * 2);
   }
+  return cv;
+}
+
+// Roof for the Světovar showcase: authored for a ~7 m world repeat (Builder.worldScale = 7), so the
+// courses, weathering streaks, patched areas and lichen still read from the 100–200 m menu camera.
+// Neutral grey so vertex colours set the hue (slate / dark tile / red tile).
+function paintRoofHero() {
+  const S = 512, cv = mkCanvas(S, S), g = cv.getContext('2d'), R = rng(1912);
+  g.fillStyle = '#b4aea6'; g.fillRect(0, 0, S, S);
+  // patched areas (re-laid tiles): large soft rectangles, wrapped
+  const wrapRect = (x, y, w, h) => { for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) g.fillRect(x + dx, y + dy, w, h); };
+  for (let i = 0; i < 14; i++) {
+    g.fillStyle = R() < 0.5 ? `rgba(70,62,54,${0.06 + R() * 0.08})` : `rgba(240,234,224,${0.05 + R() * 0.07})`;
+    wrapRect(R() * S, R() * S, 40 + R() * 120, 30 + R() * 90);
+  }
+  // courses (rows of ~0.33 m) with individual tile shading
+  const rowH = 24, tw = 22;
+  for (let r = 0; r < S / rowH; r++) {
+    const y = r * rowH;
+    for (let i = -1; i < S / tw + 1; i++) {
+      const x = i * tw + (r % 2 ? tw / 2 : 0);
+      const v = Math.floor((R() - 0.5) * 34);
+      g.fillStyle = v > 0 ? `rgba(255,250,240,${v / 160})` : `rgba(40,34,28,${-v / 140})`;
+      g.fillRect(x + 1, y + 2, tw - 2, rowH - 5);
+      g.fillStyle = 'rgba(35,30,25,0.28)'; g.fillRect(x + tw - 2, y + 2, 2, rowH - 6);
+    }
+    g.fillStyle = 'rgba(30,26,22,0.42)'; g.fillRect(0, y + rowH - 4, S, 4);   // shadow under each course
+    g.fillStyle = 'rgba(255,250,240,0.16)'; g.fillRect(0, y, S, 2);            // lit edge of the course
+  }
+  // vertical rain streaks (dark) and sun-bleached runs (light), wrapped horizontally
+  for (let i = 0; i < 34; i++) {
+    const x = R() * S, w = 6 + R() * 34, a = 0.05 + R() * 0.1;
+    const c = R() < 0.65 ? '45,40,34' : '245,240,230';
+    const gr = g.createLinearGradient(0, 0, 0, S);
+    gr.addColorStop(0, `rgba(${c},${a * 0.3})`); gr.addColorStop(0.3 + R() * 0.3, `rgba(${c},${a})`); gr.addColorStop(1, `rgba(${c},${a * 0.3})`);
+    g.fillStyle = gr; g.fillRect(x, 0, w, S); if (x + w > S) g.fillRect(x - S, 0, w, S);
+  }
+  // lichen / moss blotches
+  for (let i = 0; i < 40; i++) {
+    const cx = R() * S, cy = R() * S, r = 8 + R() * 30;
+    const gr = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+    gr.addColorStop(0, R() < 0.6 ? `rgba(120,118,70,${0.12 + R() * 0.14})` : `rgba(50,44,36,${0.12 + R() * 0.12})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr;
+    for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) g.fillRect(cx - r + dx, cy - r + dy, r * 2, r * 2);
+  }
+  speckle(g, R, 0, 0, S, S, 2500, 0.18, 0.1);
   return cv;
 }
 
@@ -630,7 +745,7 @@ export class Builder {
     this._v(a, n[0], r[0], r[1], cc); this._v(c, n[2], r[2], r[3], cc); this._v(d, n[3], r[0], r[3], cc);
   }
   /** Convex polygon (counter-clockwise from the front), uv: 'tile' (bbox mapped into tile) or 'world' (roof texture, metres/scale). */
-  poly(pts, color, tile = null, mode = 'tile', scale = 4) {
+  poly(pts, color, tile = null, mode = 'tile', scale = this.worldScale ?? 4) {
     const cc = col(color ?? 0xffffff);
     let nx = 0, ny = 0, nz = 0;
     for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; nx += (p[1] - q[1]) * (p[2] + q[2]); ny += (p[2] - q[2]) * (p[0] + q[0]); nz += (p[0] - q[0]) * (p[1] + q[1]); }
@@ -716,6 +831,36 @@ export class Builder {
     for (let k = 0; k < sides; k++) {
       const a0 = rot + (k / sides) * Math.PI * 2, a1 = rot + ((k + 1) / sides) * Math.PI * 2;
       this.poly([[cx + Math.sin(a0) * r, y0, cz + Math.cos(a0) * r], [cx + Math.sin(a1) * r, y0, cz + Math.cos(a1) * r], apex], color, tile, mode, scale);
+    }
+  }
+  /** Box-section beam from point p to point q (ridge caps, hip caps, fascia boards, rods).
+   *  w = width (horizontal, across), h = height (perpendicular, "up"); roll rotates the section (π/4 = ridge roll). */
+  beam(p, q, w, h, color, tile = null, { roll = 0, ends = true } = {}) {
+    const d = [q[0] - p[0], q[1] - p[1], q[2] - p[2]];
+    const L = Math.hypot(d[0], d[1], d[2]) || 1; d[0] /= L; d[1] /= L; d[2] /= L;
+    let sx = d[2], sz = -d[0]; const sl = Math.hypot(sx, sz); // side = horizontal, perpendicular to the beam
+    if (sl < 1e-4) { sx = 1; sz = 0; } else { sx /= sl; sz /= sl; }
+    let s = [sx, 0, sz];
+    let u = [s[1] * d[2] - s[2] * d[1], s[2] * d[0] - s[0] * d[2], s[0] * d[1] - s[1] * d[0]];
+    if (u[1] < 0) u = u.map((v) => -v);
+    if (roll) { const c = Math.cos(roll), n = Math.sin(roll); const s2 = s.map((v, i) => v * c + u[i] * n); u = u.map((v, i) => v * c - s[i] * n); s = s2; }
+    const hw = w / 2, hh = h / 2;
+    const P = (a, sg, ug) => [a[0] + s[0] * sg * hw + u[0] * ug * hh, a[1] + s[1] * sg * hw + u[1] * ug * hh, a[2] + s[2] * sg * hw + u[2] * ug * hh];
+    const cs = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    // winding is fixed below by checking the Newell normal against the outward direction
+    const face = (a, b, c, d2, out) => {
+      const n = Builder.normal(a, b, c);
+      if (n[0] * out[0] + n[1] * out[1] + n[2] * out[2] < 0) this.quad(b, a, d2, c, color, tile);
+      else this.quad(a, b, c, d2, color, tile);
+    };
+    for (let k = 0; k < 4; k++) {
+      const [s0, u0] = cs[k], [s1, u1] = cs[(k + 1) % 4];
+      const out = [s[0] * (s0 + s1) + u[0] * (u0 + u1), s[1] * (s0 + s1) + u[1] * (u0 + u1), s[2] * (s0 + s1) + u[2] * (u0 + u1)];
+      face(P(p, s0, u0), P(p, s1, u1), P(q, s1, u1), P(q, s0, u0), out);
+    }
+    if (ends) {
+      face(P(p, -1, -1), P(p, 1, -1), P(p, 1, 1), P(p, -1, 1), d.map((v) => -v));
+      face(P(q, -1, -1), P(q, 1, -1), P(q, 1, 1), P(q, -1, 1), d);
     }
   }
   /** Add any THREE geometry (indexed or not), transformed by `matrix`, tinted, uv remapped into `tile`. */
@@ -938,12 +1083,12 @@ export function barrelGeometry() {
 }
 
 /** Camera-facing smoke plume as ONE instanced mesh. Returns { mesh, update(dt, t) }. */
-export function createSmoke(kit, camera, origin, { count = 12, rise = 26, drift = [14, 0, 6], size = [2.5, 13], alpha = 0.55, period = 9 } = {}) {
+export function createSmoke(kit, camera, origin, { count = 12, rise = 26, drift = [14, 0, 6], size = [2.5, 13], alpha = 0.55, period = 9, material = null, spread = 1 } = {}) {
   const geo = new THREE.PlaneGeometry(1, 1);
   const aAlpha = new THREE.InstancedBufferAttribute(new Float32Array(count), 1);
   aAlpha.setUsage(THREE.DynamicDrawUsage);
   geo.setAttribute('aAlpha', aAlpha);
-  const mesh = new THREE.InstancedMesh(geo, kit.mats.smoke, count);
+  const mesh = new THREE.InstancedMesh(geo, material || kit.mats.smoke, count);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
   mesh.renderOrder = 2;
@@ -954,14 +1099,14 @@ export function createSmoke(kit, camera, origin, { count = 12, rise = 26, drift 
     for (let i = 0; i < count; i++) {
       const age = (t / period + i / count) % 1;
       const wob = seeds[i][1];
-      p.set(origin[0] + drift[0] * age * (1 + age) * 0.6 + wob * 1.5 * age,
-        origin[1] + rise * Math.sqrt(age) + age * 4,
-        origin[2] + drift[2] * age * (1 + age) * 0.6 + wob * age * 2);
+      p.set(origin[0] + drift[0] * age * (1 + age) * 0.6 + wob * 1.5 * age * spread,
+        origin[1] + rise * Math.sqrt(age) + age * 4 + wob * age * 2 * (spread - 1),
+        origin[2] + drift[2] * age * (1 + age) * 0.6 + wob * age * 2 * spread);
       const sc = size[0] + (size[1] - size[0]) * Math.sqrt(age);
       s.set(sc, sc, sc);
       m.compose(p, camera.quaternion, s);
       mesh.setMatrixAt(i, m);
-      aAlpha.setX(i, alpha * Math.min(1, age * 8) * (1 - age) * (1 - age));
+      aAlpha.setX(i, alpha * Math.min(1, age * 14) * Math.pow(1 - age, 1.6)); // dense at the stack, long soft tail
     }
     mesh.instanceMatrix.needsUpdate = true; aAlpha.needsUpdate = true;
   }

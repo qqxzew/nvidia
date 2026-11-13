@@ -262,7 +262,7 @@ export function createAudio(ctx) {
 
   events.on('state', ({ state }) => {
     gameState = state;
-    setPaused(state === 'paused');
+    setPaused(state === 'paused' || state === 'level2'); // level 2 has its own audio: stay silent
   });
   document.addEventListener('visibilitychange', () => {
     if (!ac) return;

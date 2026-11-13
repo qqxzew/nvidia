@@ -1,5 +1,10 @@
 # Plzeň 1926 — Level 1 "Jízda do Světovaru"
 
+> Levels: `index.html` loads `src/boot.js`, which picks the level from `?level=N` (default 1 = this document).
+> Level 3 "Gangsteři ve Světovaru" lives in `src/levels/gangsters/` — its contract is `docs/LEVEL3.md`.
+> `?level=4` → level 4 "Varna" (`src/level4/`, standalone, not in the main menu yet) — see `docs/LEVEL4.md`.
+> `?level=5` → level 5 "Šílená stáčírna" (`src/level5/`, standalone, not in the main menu yet) — see `docs/LEVEL5.md`.
+
 Mobile-first browser game (Three.js + Vite, vanilla ES modules). Landscape. Czech UI only (prototype).
 A tourist drives a 1920s brewery truck loaded with 10 beer barrels from **náměstí Republiky** to the
 **Světovar brewery** (Český plzeňský pivovar, Bory — today's TechTower) in under 1:50 (CONFIG.game.timeLimit), losing at most 2 barrels.
@@ -17,10 +22,6 @@ Reference photos & original 1911–1912 plans: `docs/reference/` (open them with
 - `19.jpg` — 1912 site plan (Kolna, Bednárna, Sladovna, Varna, Silo, Strojovna, Kotelna, Sklepy, Stáčení piva, Kantina, Administrativní budova, Garage, Benzinka, railway siding "vlečka")
 - `5.webp 6.webp 9.webp` — the truck (solid rubber tyres, wooden spoke wheels, open cab with roof, flat bed with side boards, barrels)
 - `1.webp 2.webp` — mood references only (chase cam, warm dusty light). Do NOT copy anything from those games.
-
-**Levels:** `src/main.js` is a tiny router. No `?level` → level 1 (`src/level1.js`, everything below).
-`?level=4` → level 4 "Varna" (`src/level4/`, standalone, not in the main flow yet) — see `docs/LEVEL4.md`.
-`?level=5` → level 5 "Šílená stáčírna" (`src/level5/`, standalone, not in the main flow yet) — see `docs/LEVEL5.md`.
 
 ## Conventions (must follow)
 - Units meters. **Y up. X = east, Z = south.** Ground is y = 0 everywhere (flat world).
@@ -63,7 +64,7 @@ ctx = { THREE, scene, camera, renderer, route, events, config, quality: 'high'|'
 ## Module ownership (one owner per file — do not edit files you don't own)
 | File | Owner | Export |
 |---|---|---|
-| `src/main.js` (router), `src/level1.js`, `src/config.js`, `src/core/*`, `src/world/route.js`, `src/vehicle/controller.js`, `src/gameplay/cargo.js`, `src/fx/*` | lead | — |
+| `src/boot.js`, `src/main.js`, `src/config.js`, `src/core/*`, `src/world/route.js`, `src/vehicle/controller.js`, `src/gameplay/cargo.js`, `src/fx/*` | lead | — |
 | `src/vehicle/truckModel.js` | vehicles | `createTruck(ctx)`, `createBarrelMesh(ctx)` |
 | `src/gameplay/traffic.js` (+ `src/vehicle/trafficModels.js`) | vehicles | `createTraffic(ctx)` |
 | `src/world/square.js` | landmarks | `buildSquare(ctx)` |
@@ -110,3 +111,15 @@ Game → UI events: see `src/core/events.js` (`state`, `countdown`, `barrel:lost
 - `window.__game` exposes ctx, `G` (state), `controller`, `cargo`. `renderer.info.render.calls/triangles` for budgets.
 - Keyboard (desktop): arrows/WASD, Enter = start.
 - Always finish with `npm run build` passing.
+
+## Main menu (added)
+- Game states now start at `title` (main menu) → `menu` (level 1 briefing) → `countdown` → `playing` → `won`/`lost`.
+  Debug params `?autostart`, `?s=` and `?view=` skip the main menu.
+- `src/ui/title.js` + `title.css`: paper sheet on the left (story mode: new game / continue, levels, about, prologue),
+  language flag top-left (cs/en/de, persisted, switching reloads the page), settings bar bottom-right.
+  Emits `ui:menu` (open the level 1 briefing). Level screens emit `ui:title` to return.
+- `src/core/progress.js`: story progress in localStorage (`started`, `reached`, best stars/time per level).
+  `main.js` calls `progress.complete(1, …)` on `finish`.
+- Camera in `title`: `cameraRig.titleOrbit` swings around the Světovar complex, shifted right with
+  `setViewOffset`; fog is pushed back and the sun comes from the road side while the menu is open.
+- Strings: `src/ui/i18n.js` has full cs/en/de; the rubber stamp stays Czech in every language.
