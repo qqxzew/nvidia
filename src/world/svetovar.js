@@ -1,21 +1,31 @@
 // Světovar — Český plzeňský pivovar, Bory (1910–13, today TechTower). Owned by "landmarks".
 //
-// Layout (world coords, X = east, Z = south). The field road runs south along x ≈ 6 just outside the
-// east fence (x = -6); the player sees the complex on the RIGHT, i.e. looking west, which is the view of
-// the 1911 street elevation and the period photos: from left (south) to right (north)
-//   admin villas (z 974–1040) · tall cellar tower with mansard (x -64..-82, z 978–996)
-//   · brewhouse "Varna" with clock tower + silo + machine room + boiler house (z 890–922)
-//   · the brick chimney (-42, 888, 58 m) · dark lattice cooling tower (-40, 867)
-//   · long storage block with vent turret (x -48..-70, z 780–872) · gabled house by the fence (z 846–870).
-// Railway z = 880 continues from the fence to a buffer stop at x ≈ -233; a siding (z = 885 from x ≈ -135)
-// holds the parked "PLZEŇSKÝ SVĚTOVAR" wagons. Expedition (Stáčení piva) with the loading ramp at
-// x ≈ -100 frames the end of the drive (finish ≈ (-76, 951), truck facing -X).
-// The yard band z 935..968 for x -95..-6 is kept free (only flat chalk marks + paving).
+// Rebuilt to the archive material (docs/reference + the 1911/1912 permit drawings):
+//   · footprints from the 1912 site plan ("Český plzeň. pivovar", 13 Nov 1912, č. 31659) — plan right =
+//     east (the field road, fence x = -6), plan up = north (-Z), ≈ 0.30 m per plan pixel (calibrated on
+//     the 4.5 m spacing of the yard tracks and the admin building's width in the elevation);
+//   · heights from the 1911 street elevation "celkový pohled na pivovar" (1:250 scale bar ≈ 10 px/m):
+//     chimney ≈ 48 m, clock spire ≈ 34 m (finial 36 m), brewhouse parapet ≈ 16 m, cellar tower ridge
+//     ≈ 28.5 m with its stair tower ≈ 25 m, admin eaves ≈ 9 m;
+//   · shapes from the period photos (field view with the people, the wagon photo, the two postcards and
+//     the aerial postcard, which shows the same layout as the plan seen from the south-east).
 //
-// The complex is also the hero of the main menu (camera swinging around it from the east at 100–200 m),
-// so silhouettes carry the detail: ridge/hip caps, fascia boards, dormer rows, the bell-cast clock spire
-// with real clock dials, the brewhouse vapour stacks, the corbelled chimney crown, cornices and string
-// courses as relief geometry, per-building plaster tones, a coal-smoke plume, steam, and two flags.
+// Layout (world coords, X = east, Z = south; the field road runs south along x ≈ 6 east of the fence):
+//   north of the upper track (z 870): malt house "Sladovna" with the kiln turret (x -148..-94, z 829..866),
+//     coachmen's house + garage in the NE corner (gable to the road), coach house + cooperage along the
+//     west fence, the petrol shed.
+//   between the tracks: chimney (-76, 879.5) + dark lattice cooling tower + condenser house; the brewhouse row
+//     Varna (clock tower at its SW corner, timber coolship on the roof) · silo · pre-heaters · machine room
+//     · boiler house (x -161..-86, z 892..915); the Kantina pavilion with its turret by the east fence.
+//   yard tracks z 921 / 930 with the "PLZEŇSKÝ SVĚTOVAR" wagons and buffer stops at x ≈ -45 (wagon photo:
+//     the truck stands right next to the wagons, the brewhouse row behind them).
+//   south of the tracks: lager cellars (x -203..-156) with the cellar tower on their NE corner, linked to
+//     the Varna by a covered bridge; bottling + fire station / barrel wash (x -156..-98) whose east front
+//     with the loading ramp ends the drive (finish ≈ (-76, 951), truck facing -X); administration
+//     building angled along the SE boundary street, a villa beside it.
+// The yard band z 935..968 for x -95..-6 is kept free (only flat chalk marks + paving).
+// The railway really came from the west; in the game the upper track continues east through the fence to
+// the level crossing on the field road (route.anchors.rail).
 //
 // Draw calls: walls, roofs, props, yard (merged by material) + fence panels, wagons, barrels (instanced)
 // + coal smoke + 2 steam plumes + flags (instanced) = 11.
@@ -25,13 +35,25 @@ import {
   barrelGeometry, createSmoke,
 } from './landmarkUtils.js';
 
-const CREAM = 0xebdfc4, CREAM2 = 0xe5d5b5, OCHRE = 0xe2cfa6, VILLA = 0xeee2c8;
+const CREAM2 = 0xe5d5b5, OCHRE = 0xe2cfa6, VILLA = 0xeee2c8;
 // per-building plaster tones (hand-coloured postcards: warm cream, light ochre, one whiter render)
-const T_BREW = 0xf0e6d0, T_TOWER = 0xeadab8, T_CELLAR = 0xe4d3b0, T_STORE = 0xe9d8b2, T_MALT = 0xece0c4;
-const T_HOUSE = 0xf1e8d4, T_MACH = 0xe9dcc0, T_BOIL = 0xe6d5b2, T_EXP = 0xeadfc6;
+const T_BREW = 0xf0e6d0, T_TOWER = 0xeadab8, T_CELLAR = 0xe4d3b0, T_MALT = 0xece0c4, T_MALT2 = 0xe6d8b8;
+const T_HOUSE = 0xf1e8d4, T_MACH = 0xe9dcc0, T_BOIL = 0xe6d5b2, T_EXP = 0xeadfc6, T_KANT = 0xf0e4cc;
 const SLATE = 0x5f5a55, SLATE2 = 0x58595b, SLATE3 = 0x655c54, RED = 0x8f4a36, RED2 = 0x9a553d;
-const FASCIA = 0x3d3833, STONE = 0xddd3c0;
+const FASCIA = 0x3d3833, STONE = 0xddd3c0, IRON = 0x2d2a26;
 const ROOF_SCALE = 7; // world repeat of the hero roof texture (m)
+
+// key positions (1912 plan / 1911 elevation)
+const CH = [-76, 879.5];                                      // chimney (the small circle in the plan)
+const CH_H = 48;                                              // chimney height
+const VAR = { x0: -160, x1: -141, z0: 895, z1: 915 };         // brewhouse (Varna)
+const TWR = { x0: -161, x1: -153.6, z0: 907.8, z1: 915.6 };   // its clock tower (SW corner)
+const CT = { x0: -166, x1: -156, z0: 942, z1: 960 };          // cellar tower (věž sklepů)
+const CTS = { x0: -165, x1: -157, z0: 936.4, z1: 942 };       // … and its stair tower (north side)
+const L1Z = 921, L2Z = 930;                                   // yard tracks
+const STACKS = [[-147.1, 901], [-147.1, 908.5]];              // brew-kettle vapour stacks
+const ADM = { x: -34.7, z: 976.8, rot: -2.618 };              // admin building (front faces NW to the yard)
+const VILLA2 = { x: -66, z: 992.6, rot: -2.618 };
 
 export function buildSvetovar(ctx) {
   const { scene, route, camera } = ctx;
@@ -41,278 +63,142 @@ export function buildSvetovar(ctx) {
   const wb = new Builder(kit), rb = new Builder(kit), pb = new Builder(kit), gb = new Builder(kit);
   rb.worldScale = ROOF_SCALE;
   const FX = a.fence.x, RZ = a.rail.z;
-  const Z0 = a.fence.fromZ, Z1 = a.fence.toZ, X0 = Math.min(a.brewery.minX, a.rail.toX) - 3; // west fence
+  // boundary of the 1912 plan: straight east side along the road, a diagonal street in the south-east
+  const NE = [FX, a.brewery.minZ], SE = [FX, a.fence.toZ], SM = [-109, 1028.7], SW = [a.brewery.minX, a.brewery.maxZ], NW = [a.brewery.minX, 800];
+  const GR = (...args) => GRf(wb, rb, ...args);
+  const HR = (...args) => HRf(rb, ...args);
 
   // ------------------------------------------------------------------ yard surface, paving, lawns
   // beaten-earth base of the whole compound (untextured: reads as dusty ground from the menu camera),
-  // cobbled areas on top of it in the ground material
-  pb.quad([X0, 0.006, Z1], [FX, 0.006, Z1], [FX, 0.006, Z0], [X0, 0.006, Z0], 0xb3a68c);
+  // cobbled / cinder areas on top of it in the ground material
+  flat(pb, [SE, NE, NW, SW, SM], 0.006, 0xb3a68c);
   const pave = (x0, x1, z0, z1, c, y = 0.013) => gb.poly([[x0, y, z1], [x1, y, z1], [x1, y, z0], [x0, y, z0]], c, null, 'world', 5);
-  pave(-100, -6, 920, 976, 0xd6cbb8);                 // cobbled main yard (gate → expedition), under the road ribbon
-  pave(-100, -14, 884, 892, 0xc8beae);                // cobbled strip along the brewhouse row (north side)
-  pave(X0, -6, 874, 884, 0x968b7c);                   // cinders around the railway (rails stay free)
-  pave(-230, -100, 884, 896, 0xa89d8b);               // siding / loading platform apron
-  pave(-176, -100, 925, 938, 0xcfc3ad);               // lane in front of the fire station
-  pave(-82, -62, 996, 1001, 0xcfc3ad);                // path behind the cellar tower
-  // stone sidewalks along the yard faces of the main buildings (read as a crisp base line from afar)
-  const walk = (x0, x1, z0, z1) => pave(x0, x1, z0, z1, 0xd9d0bf, 0.035);
-  walk(-96, -22, 922, 924.2); walk(-14, -12.2, 972, 1004); walk(-82.5, -63.5, 976.2, 978); walk(-63.8, -62, 976, 996.5);
+  pave(-98, -7, 930, 972, 0xd6cbb8);                 // cobbled main yard (gate → expedition), under the road ribbon
+  pave(-162, -86, 915, 918.6, 0xc8beae);             // cobbles along the brewhouse row
+  pave(-276, -40, 916.6, 934.4, 0x968b7c);           // cinders of the yard tracks
+  pave(-176, -7, 865.6, 874.4, 0x968b7c);            // cinders of the upper track
+  pave(-86, -60, 876, 916, 0x8d8378);                // coal yard by the boiler house
+  pave(-156, -98, 977, 983, 0xcfc3ad);               // lane behind the bottling hall
+  pave(-203, -156, 989, 995, 0xcfc3ad);              // lane behind the cellars
   const lawn = (x0, x1, z0, z1, c = 0x86955a) => pb.quad([x0, 0.04, z1], [x1, 0.04, z1], [x1, 0.04, z0], [x0, 0.04, z0], c);
-  lawn(-36, -7, 1006, 1088); lawn(-60, -36, 1040, 1088, 0x7f8f55); lawn(-44, -7, 788, 844, 0x7f8f55);
-  lawn(-235, -100, 1036, 1088, 0x8a9660); lawn(-235, -178, 896, 938, 0x84925a); lawn(-235, -174, 980, 1036, 0x8a9660);
-  lawn(-86, -72, 800, 872, 0x7f8f55); lawn(-235, -140, 762, 790, 0x8a9660); lawn(-40, -7, 1004, 1006, 0x7a8a50);
-  lawn(-12, -7, 972, 1004, 0x83935a); // front garden of the administration villa
+  lawn(-58, -31, 885, 914);                          // lawn in front of the chimney (aerial postcard)
+  lawn(-29, -6.6, 875, 921, 0x83935a);               // Kantina garden
+  lawn(-92, -52, 813, 862, 0x7f8f55);                // between malt house and coachmen's house
+  lawn(-160, -50, 792, 826, 0x8a9660);               // north strip
+  lawn(-255, -205, 940, 1050, 0x8a9660);             // west field inside the fence
+  lawn(-280, -208, 800, 860, 0x84925a);
+  // admin + villa garden along the diagonal street
+  flat(pb, [[-6.5, 973.2], [-6.5, 962], [-22, 958.5], [-84, 993], [-104, 1026.3]], 0.04, 0x86955a);
 
-  // ------------------------------------------------------------------ railway: main line + siding
-  const track = buildTrack(pb, RZ);
-  const wagonsZ = track.sidingZ;
+  // ------------------------------------------------------------------ railway: upper track + yard tracks
+  const wagonsAt = buildTrack(pb, RZ);
 
-  // ------------------------------------------------------------------ roof helpers (caps + fascia)
-  const RC = (c) => new THREE.Color(c).multiplyScalar(0.72);
-  const GR = (x0, x1, z0, z1, yE, h, axis, o, roofCol, wallCol, gTile = 'plain', opts = {}) => {
-    gableRoof(rb, opts.noWalls ? null : wb, x0, x1, z0, z1, yE, h, axis, o, roofCol, wallCol, gTile, opts);
-    gableCaps(rb, x0, x1, z0, z1, yE, h, axis, o, roofCol, opts.ends !== false);
-  };
-  const HR = (x0, x1, z0, z1, yE, h, o, roofCol) => { hipRoof(rb, x0, x1, z0, z1, yE, h, o, roofCol); hipCaps(rb, x0, x1, z0, z1, yE, h, o, roofCol); };
+  // ------------------------------------------------------------------ north: malt house, coachmen's house, sheds
+  sladovna(wb, rb, pb, GR, HR);
+  coachmensHouse(wb, rb, GR, HR);
+  // coach house (Kolna) + cooperage (Bednárna) along the west fence
+  wb.block(-275, -262, 806, 852, [0, 0.8, 5.4], { all: (i, j) => (j === 0 ? 'plinth' : 'win'), e: (i, j) => (j === 0 ? 'plinth' : 'loadDoor') }, OCHRE, 4.2);
+  GR(-275, -262, 806, 852, 5.4, 4.0, 'z', 0.4, SLATE3, OCHRE, 'gable');
+  wb.block(-275, -262, 852, 883, [0, 0.8, 5.4], { all: (i, j) => (j === 0 ? 'plinth' : 'win') }, CREAM2, 3.9);
+  GR(-275, -262, 852, 883, 5.4, 4.0, 'z', 0.4, SLATE, CREAM2, 'gable');
+  chimney(wb, -268.5, 868, 8.0, 2.2);
+  // petrol shed (Benzinka) with a pump
+  wb.block(-178, -166, 800, 806, [0, 3.2], { all: 'plain', s: (i) => (i === 1 ? 'door' : 'win') }, CREAM2, 4);
+  GR(-178, -166, 800, 806, 3.2, 1.6, 'x', 0.3, SLATE3, CREAM2, 'plain');
+  pb.add(cylG, M4(-171, 1.1, 808.2, 0, 0.22, 2.2, 0.22), 0xa53a2e);
+  pb.add(ballG, M4(-171, 2.45, 808.2, 0, 0.26, 0.3, 0.26), 0xf1ead8);
 
-  // ------------------------------------------------------------------ buildings
-  // --- north sector (right side of the photos)
-  // garage / coachmen's house in the NE corner (far right of the 1911 elevation)
-  wb.block(-26, -14, 772, 786, [0, 0.8, 3.8, 6.4], { all: (i, j) => (j === 0 ? 'plinth' : 'win'), e: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'gate' : 'win') }, OCHRE, 3.5);
-  GR(-26, -14, 772, 786, 6.4, 5.2, 'x', 0.45, RED, OCHRE, 'gable');
-  chimney(wb, -20, 779, 9, 3);
-  // the big gabled house by the fence (gable to the road, photo 8 / 15) + lower wing
-  wb.block(-32, -12, 846, 870, [0, 0.8, 4.4, 8, 11.4], { all: (i, j) => (j === 0 ? 'plinthWin' : 'win') }, T_HOUSE, 3.6);
-  bands(wb, -32, -12, 846, 870, [4.4], T_HOUSE);
-  GR(-32, -12, 846, 870, 11.4, 9.5, 'x', 0.45, SLATE, T_HOUSE, 'plain');
-  // attic windows in both gables (photo 8: one double window high in the gable facing the road)
-  for (const [x, sg] of [[-11.9, 1], [-32.1, -1]]) {
-    for (const [zc, y0, hh, tl] of [[858, 13.0, 3.0, 'winPair'], [858, 17.2, 1.8, 'winSmall']]) {
-      const hw = tl === 'winPair' ? 1.9 : 1.0, za = zc + sg * hw, zb = zc - sg * hw;
-      wb.quad([x, y0, za], [x, y0, zb], [x, y0 + hh, zb], [x, y0 + hh, za], T_HOUSE, tl);
+  // ------------------------------------------------------------------ between the tracks: brewhouse row, chimney
+  brewhouse(wb, rb, pb, GR, HR);
+  chimneyStack(wb, pb);
+  // dark lattice cooling tower west of the chimney (the octagon in the plan): right of the chimney in the
+  // photo with the people (seen from the NE), left of it on the aerial postcard (seen from the SE)
+  const KT = [-88.4, 882];
+  wb.cyl(KT[0], KT[1], 0, 13.0, 4.5, 3.0, 8, 3, 'slats', 0xffffff, { rot: Math.PI / 8, smooth: false, cap: true });
+  wb.cyl(KT[0], KT[1], 13.0, 14.5, 2.4, 2.4, 8, 1, 'slats', 0xcccccc, { rot: Math.PI / 8, smooth: false, cap: true });
+  for (let k = 0; k < 8; k++) { const an = Math.PI / 8 + (k / 8) * Math.PI * 2; rb.beam([KT[0] + Math.sin(an) * 4.55, 0, KT[1] + Math.cos(an) * 4.55], [KT[0] + Math.sin(an) * 3.05, 13.1, KT[1] + Math.cos(an) * 3.05], 0.26, 0.26, 0x2a2622); }
+  // condenser house (KOND.)
+  wb.block(-115, -103, 875, 887, [0, 0.8, 5.0], { all: (i, j) => (j === 0 ? 'plinth' : 'win') }, T_MACH, 4);
+  wb.box(-115.3, -102.7, 4.8, 5.4, 874.7, 887.3, 'corniceHeavy', T_MACH);
+  HR(-115, -103, 875, 887, 5.4, 2.4, 0.4, SLATE3);
+  kantina(wb, rb, pb);
+
+  // ------------------------------------------------------------------ south of the tracks
+  cellars(wb, rb, pb, GR, HR);
+  cellarTower(wb, rb, pb);
+  // covered bridge Varna → cellar tower over the yard tracks (wagon photo), on a lattice pylon
+  {
+    const BX = -159, y0 = 8.2, y1 = 10.8, za = TWR.z1, zb = CTS.z0;
+    wb.wall(BX + 1.2, zb, BX + 1.2, za, [y0, y1], 7, 'winSmall', T_BREW);
+    wb.wall(BX - 1.2, za, BX - 1.2, zb, [y0, y1], 7, 'winSmall', T_BREW);
+    wb.box(BX - 1.2, BX + 1.2, y0 - 0.25, y0, za, zb, 'stone', STONE, { bottom: true, sides: 'ew' });
+    wb.box(BX - 1.4, BX + 1.4, y1, y1 + 0.3, za, zb, 'stone', STONE, { bottom: true, sides: 'ew' });
+    const pz = (L1Z + L2Z) / 2;
+    for (const dx of [-0.9, 0.9]) for (const dz of [-0.6, 0.6]) rb.beam([BX + dx * 1.25, 0, pz + dz * 1.4], [BX + dx, y0 - 0.25, pz + dz], 0.22, 0.22, IRON);
+    for (let k = 0; k < 4; k++) {
+      const ya = (k * (y0 - 0.3)) / 4, yb = ((k + 1) * (y0 - 0.3)) / 4;
+      for (const dx of [-0.9, 0.9]) rb.beam([BX + dx, ya, pz - 0.75], [BX + dx, yb, pz + 0.75], 0.08, 0.08, IRON);
+      for (const dz of [-0.6, 0.6]) rb.beam([BX - 1.0, ya, pz + dz], [BX + 1.0, yb, pz + dz], 0.08, 0.08, IRON);
     }
   }
-  wb.box(-12.3, -11.9, 11.0, 11.6, 845.6, 870.4, 'corniceHeavy', T_HOUSE);
-  wb.box(-32.4, -11.6, 11.0, 11.6, 845.6, 846.0, 'corniceHeavy', T_HOUSE, { top: false });
-  wb.box(-32.4, -11.6, 11.0, 11.6, 870.0, 870.4, 'corniceHeavy', T_HOUSE, { top: false });
-  for (const side of ['n', 's']) dormerRow(wb, rb, { x0: -32, x1: -12, z0: 846, z1: 870 }, side, 11.4, 9.5 / 12, [6, 14], { wallCol: T_HOUSE, roofCol: SLATE });
-  chimney(wb, -18, 858, 18, 4.4); chimney(wb, -27, 858, 18, 4.4);
-  wb.block(-30, -14, 834, 846, [0, 0.8, 4.2, 6.6], { all: (i, j) => (j === 0 ? 'plinth' : 'win'), s: null }, CREAM2, 3.6);
-  GR(-30, -14, 834, 846, 6.6, 3.8, 'x', 0.4, SLATE3, CREAM2, 'plain');
-  // long storage block with the belfry-like vent turret (photos 8, 13, 15)
-  const sb = (i, j) => (j === 0 ? 'plinthWin' : 'win');
-  wb.block(-70, -48, 780, 872, [0, 1.2, 5.4, 9.4, 13.4, 17.4], { all: sb }, T_STORE, 3.6);
-  wb.box(-70.45, -47.55, 17.0, 17.75, 779.55, 872.45, 'corniceHeavy', T_STORE);
-  bands(wb, -70, -48, 780, 872, [5.4], T_STORE);
-  pilasters(wb, -70, -48, 780, 872, 0, 17.0, T_STORE);
-  HR(-70, -48, 780, 872, 17.6, 5.5, 0.5, SLATE);
-  for (const side of ['e', 'w']) dormerRow(wb, rb, { x0: -70, x1: -48, z0: 780, z1: 872 }, side, 17.6 + 0.5 * 0.478, 0.478, [14, 26, 38, 50, 62, 74], { wallCol: T_STORE, roofCol: SLATE, d0: 1.0 });
-  for (const z of [792, 822, 852]) chimney(wb, -59, z, 21, 3.4);
-  ventTurret(wb, rb, -59, 864, T_STORE);
-  // dark lattice cooling tower (photo 15, right of the chimney)
-  wb.cyl(-40, 867, 0, 15.5, 5.7, 3.9, 4, 3, 'slats', 0xffffff, { rot: Math.PI / 4, smooth: false, cap: true });
-  wb.box(-42, -38, 15.5, 17.0, 865, 869, 'slats', 0xcccccc);
-  for (const [dx, dz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) rb.beam([-40 + dx * 4.03, 0, 867 + dz * 4.03], [-40 + dx * 2.76, 15.6, 867 + dz * 2.76], 0.3, 0.3, 0x2a2622);
-  // cooperage (Bednárna) and coach house (Kolna) north of the line
-  wb.block(-200, -150, 852, 873, [0, 0.8, 5.2, 7.4], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? (i % 3 === 1 ? 'loadDoor' : 'win') : 'winSmall') }, OCHRE, 4);
-  GR(-200, -150, 852, 873, 7.4, 4.5, 'x', 0.4, SLATE3, OCHRE, 'gable');
-  wb.block(-231, -206, 792, 872, [0, 6.2], { all: 'loadDoor', w: 'plain' }, CREAM2, 4.5);
-  GR(-231, -206, 792, 872, 6.2, 4.2, 'z', 0.4, SLATE, CREAM2, 'plain');
-  // malt house (Sladovna) — big block behind the wagons
-  wb.block(-138, -90, 798, 862, [0, 1.2, 5.4, 9.6, 13.8, 18], { all: (i, j) => (j === 0 ? 'plinthWin' : 'malt') }, T_MALT, 4);
-  wb.box(-138.45, -89.55, 17.6, 18.35, 797.55, 862.45, 'corniceHeavy', T_MALT);
-  bands(wb, -138, -90, 798, 862, [5.4], T_MALT);
-  pilasters(wb, -138, -90, 798, 862, 0, 17.6, T_MALT);
-  HR(-138, -90, 798, 862, 18.2, 6, 0.5, SLATE2);
-  for (const z of [815, 845]) {
-    wb.box(-117, -111, 20, 26, z - 3, z + 3, 'louver', T_MALT);
-    rb.cone(-114, z, 26, 3.4, 4.6, 4, SLATE2, null, Math.PI / 4, 'world', 2);
-    pb.add(ballG, M4(-114, 29.6, z, 0, 0.25, 0.25, 0.25), 0x3c3a36);
-  }
+  expedition(wb, rb, pb);
+  adminBuilding(wb, rb, pb, ADM.x, ADM.z, ADM.rot);
+  smallVilla(wb, rb, VILLA2.x, VILLA2.z, VILLA2.rot);
 
-  // --- brewhouse row between the railway and the yard (z 884..922)
-  // chimney: stone/brick plinth + tapered shaft, ~58 m, corbelled crown, iron bands
-  const CH = [-42, 888];
-  wb.block(CH[0] - 3.4, CH[0] + 3.4, CH[1] - 3.4, CH[1] + 3.4, [0, 1.4, 8.2], { all: (i, j) => (j === 0 ? 'plinth' : 'brickDark') }, 0xffffff, 3.4);
-  wb.box(CH[0] - 3.8, CH[0] + 3.8, 8.2, 9.2, CH[1] - 3.8, CH[1] + 3.8, 'stone', 0xd6ccbc);
-  wb.box(CH[0] - 3.55, CH[0] + 3.55, 6.9, 7.4, CH[1] - 3.55, CH[1] + 3.55, 'stone', 0xd6ccbc, { top: false, bottom: true });
-  const shaftR = (y) => 2.75 + (1.72 - 2.75) * ((y - 9.2) / (54.6 - 9.2));
-  wb.cyl(CH[0], CH[1], 9.2, 54.6, 2.75, 1.72, 18, 24, 'brickGrey', 0xf2ece4, { cap: false });
-  wb.cyl(CH[0], CH[1], 54.6, 55.8, 1.72, 2.05, 18, 1, 'brickDark', 0xffffff, { cap: false });   // corbel flare
-  wb.cyl(CH[0], CH[1], 55.8, 57.6, 2.05, 2.05, 18, 1, 'brickDark', 0xe8ddd0, { cap: false });
-  wb.cyl(CH[0], CH[1], 57.6, 58.2, 2.16, 2.16, 18, 1, 'stone', 0xb8afa2, { cap: false });
-  wb.cyl(CH[0], CH[1], 58.2, 58.6, 1.95, 1.85, 18, 1, 'dark', 0xffffff, { cap: true });
-  for (let y = 14; y < 54; y += 6.5) { const r = shaftR(y) + 0.05; wb.cyl(CH[0], CH[1], y, y + 0.3, r, r, 18, 1, 'dark', 0xffffff, { cap: false }); }
-  pb.add(boxG, M4(CH[0], 60.2, CH[1] + 1.5, 0, 0.06, 3.4, 0.06), 0x2d2a26);
-  // boiler house (Kotelna) with a ridge lantern
-  wb.block(-38, -22, 890, 918, [0, 1, 9, 11], { all: (i, j) => (j === 1 ? 'winTall' : j === 0 ? 'plinth' : 'plain') }, T_BOIL, 4);
-  bands(wb, -38, -22, 890, 918, [9], T_BOIL, 0.25, 0.35, 'corniceHeavy');
-  pilasters(wb, -38, -22, 890, 918, 0, 11, T_BOIL, 0.8, 0.18);
-  GR(-38, -22, 890, 918, 11, 4.2, 'x', 0.4, SLATE, T_BOIL, 'winRound');
-  wb.block(-36, -24, 902.4, 905.6, [14, 15.8], { all: 'slats' }, 0xffffff, 3);
-  GR(-36, -24, 902.4, 905.6, 15.8, 1.0, 'x', 0.35, SLATE, null, 'plain', { noWalls: true });
-  // machine room (Strojovna) with pedimented dormers (section 17/18)
-  wb.block(-66, -46, 893, 919, [0, 1.2, 10.4, 12.4], { all: (i, j) => (j === 1 ? 'winTall' : j === 0 ? 'plinth' : 'corniceHeavy') }, T_MACH, 4);
-  pilasters(wb, -66, -46, 893, 919, 0, 12.4, T_MACH, 0.8, 0.18);
-  GR(-66, -46, 893, 919, 12.4, 5, 'x', 0.4, SLATE3, T_MACH, 'gable');
-  for (const x of [-62, -58.5, -55, -51.5]) dormer(wb, rb, x, 918.0, 2.4, 12.6, 2.0, 2.6, T_MACH, SLATE3, 'winArch');
-  // silo / pre-heaters (tall narrow)
-  wb.block(-73, -66, 892, 920, [0, 1.2, 6, 10.5, 15, 19.5, 24, 25.5], { all: (i, j) => (j === 0 ? 'plinth' : j === 6 ? 'corniceHeavy' : i % 2 ? 'winSmall' : 'plain') }, CREAM2, 3.5);
-  HR(-73, -66, 892, 920, 25.5, 1.5, 0.3, SLATE);
-  wb.box(-71, -68, 25.5, 28, 902, 910, 'louver', CREAM2);
-  HR(-71, -68, 902, 910, 28, 1.4, 0.3, SLATE);
-  // brewhouse (Varna) + clock tower with a bell-cast spire
-  const VX0 = -96, VX1 = -73, VZ0 = 890, VZ1 = 922;
-  const T = { x0: -96.4, x1: -87.2, z0: 912.6, z1: 922.4 };
-  wb.block(VX0, VX1, VZ0, VZ1, [0, 1.2, 5.6, 9.6, 13.6, 17.6, 21.4, 23.4], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'rusticArch' : j === 6 ? 'corniceHeavy' : 'lesene') }, T_BREW, 4);
-  bands(wb, VX0, VX1, VZ0, VZ1, [5.6], T_BREW, 0.22, 0.4);
-  wb.box(VX0 - 0.5, VX1 + 0.5, 23.0, 23.6, VZ0 - 0.5, VZ1 + 0.5, 'stone', STONE, { bottom: true });
-  pilasters(wb, VX0, VX1, VZ0, VZ1, 1.2, 23.0, T_BREW, 1.0, 0.25);
-  // attic parapet with pinnacles over the main cornice (elevation 12, photo 9); the roof sits behind it
-  ring(wb, VX0, VX1, VZ0, VZ1, 23.6, 24.5, 0.15, 0.3, 'stone', T_BREW);
-  ring(wb, VX0, VX1, VZ0, VZ1, 24.5, 24.7, 0.25, 0.5, 'stone', STONE);
-  for (const [ax, az, bx, bz] of [[VX0, VZ0, VX1, VZ0], [VX1, VZ0, VX1, VZ1], [VX1, VZ1, VX0, VZ1], [VX0, VZ1, VX0, VZ0]]) {
-    const L = Math.hypot(bx - ax, bz - az), n = Math.round(L / 2.9);
-    for (let k = 0; k <= n; k++) {
-      const x = ax + ((bx - ax) * k) / n, z = az + ((bz - az) * k) / n;
-      if (x < T.x1 + 0.3 && z > T.z0 - 0.3) continue; // inside the clock tower
-      wb.box(x - 0.24, x + 0.24, 24.7, 25.5, z - 0.24, z + 0.24, 'stone', STONE);
-      pb.add(ballG, M4(x, 25.72, z, 0, 0.22, 0.22, 0.22), 0xd2c8b4);
-    }
-  }
-  HR(VX0, VX1, VZ0, VZ1, 23.6, 4.5, -0.3, SLATE2);
-  dormerRow(wb, rb, { x0: VX0, x1: VX1, z0: VZ0, z1: VZ1 }, 'e', 23.6 - 0.3 * 0.4, 0.4, [8, 14, 20], { wallCol: T_BREW, roofCol: SLATE2, d0: 1.3, w: 1.4, hw: 1.3 });
-  // vapour stacks of the two brew kettles (section 17): slim iron pipes through the roof, conical hats
-  const STACKS = [[-80, 899], [-80, 906]];
-  for (const [x, z] of STACKS) {
-    pb.add(cylG, M4(x, 31, z, 0, 0.45, 13, 0.45), 0x3a3733);
-    pb.add(cylG, M4(x, 26.3, z, 0, 0.62, 0.5, 0.62), 0x2e2b28);
-    pb.add(coneG, M4(x, 38.1, z, 0, 1.0, 0.7, 1.0), 0x2e2b28);
-    for (const k of [0, 1, 2]) { const ang = (k / 3) * Math.PI * 2; pb.add(boxG, M4(x + Math.sin(ang) * 0.55, 37.6, z + Math.cos(ang) * 0.55, ang, 0.06, 0.6, 0.06), 0x2e2b28); }
-  }
-  const tcx = (T.x0 + T.x1) / 2, tcz = (T.z0 + T.z1) / 2;
-  wb.block(T.x0, T.x1, T.z0, T.z1, [23.6, 28.0, 32.4, 34.0], { all: (i, j) => (j === 0 ? 'arcadeWin' : j === 1 ? 'plain' : 'corniceHeavy') }, T_BREW, 9.2, 'plain');
-  bands(wb, T.x0, T.x1, T.z0, T.z1, [28.0], T_BREW, 0.2, 0.35);
-  wb.box(T.x0 - 0.5, T.x1 + 0.5, 34.0, 34.6, T.z0 - 0.5, T.z1 + 0.5, 'stone', STONE, { bottom: true });
-  pilasters(wb, T.x0, T.x1, T.z0, T.z1, 23.6, 34.0, T_BREW, 0.9, 0.22);
-  // clock dials on all four faces (square quads so the dial stays round)
-  const CD = 1.75, CY = 30.2;
-  wb.quad([T.x1 + 0.1, CY - CD, tcz + CD], [T.x1 + 0.1, CY - CD, tcz - CD], [T.x1 + 0.1, CY + CD, tcz - CD], [T.x1 + 0.1, CY + CD, tcz + CD], T_BREW, 'clockFace');
-  wb.quad([T.x0 - 0.1, CY - CD, tcz - CD], [T.x0 - 0.1, CY - CD, tcz + CD], [T.x0 - 0.1, CY + CD, tcz + CD], [T.x0 - 0.1, CY + CD, tcz - CD], T_BREW, 'clockFace');
-  wb.quad([tcx - CD, CY - CD, T.z1 + 0.1], [tcx + CD, CY - CD, T.z1 + 0.1], [tcx + CD, CY + CD, T.z1 + 0.1], [tcx - CD, CY + CD, T.z1 + 0.1], T_BREW, 'clockFace');
-  wb.quad([tcx + CD, CY - CD, T.z0 - 0.1], [tcx - CD, CY - CD, T.z0 - 0.1], [tcx - CD, CY + CD, T.z0 - 0.1], [tcx + CD, CY + CD, T.z0 - 0.1], T_BREW, 'clockFace');
-  for (const [dx, dz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
-    const px = tcx + dx * 4.4, pz = tcz + dz * 4.6;
-    wb.cyl(px, pz, 34.6, 36.8, 0.5, 0.45, 6, 1, 'louver', T_BREW, { smooth: false });
-    rb.cone(px, pz, 36.8, 2.4, 0.72, 6, SLATE2, null, 0, 'world', 2);
-    pb.add(ballG, M4(px, 39.3, pz, 0, 0.12, 0.12, 0.12), 0xc9a64e);
-  }
-  // bell-cast square spire (photo 9): flared kick, steep body, lantern, small cap, gilt ball + needle
-  spire(rb, tcx, tcz, [[34.6, 5.37], [35.4, 5.0], [40.5, 2.6], [43.4, 1.15]], 4, SLATE2, Math.PI / 4);
-  for (const [nx, nz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
-    // small clock-dormers on the spire faces
-    const dx = tcx + nx * 3.9, dz = tcz + nz * 3.9;
-    wb.at(dx, dz, Math.atan2(nx, nz)); rb.at(dx, dz, Math.atan2(nx, nz));
-    dormer(wb, rb, 0, 0, 1.5, 35.6, 1.5, 2.0, T_BREW, SLATE2, 'winRound');
-    wb.reset(); rb.reset();
-  }
-  wb.cyl(tcx, tcz, 43.4, 45.0, 0.75, 0.7, 8, 1, 'louver', T_BREW, { smooth: false });
-  wb.cyl(tcx, tcz, 45.0, 45.3, 0.92, 0.92, 8, 1, 'stone', STONE, { smooth: false });
-  spire(rb, tcx, tcz, [[45.3, 0.95], [46.1, 0.62], [47.6, 0.0]], 8, SLATE2, 0);
-  pb.add(ballG, M4(tcx, 47.9, tcz, 0, 0.26, 0.26, 0.26), 0xc9a64e);
-  pb.add(boxG, M4(tcx, 49.2, tcz, 0, 0.07, 2.6, 0.07), 0x2d2a26);
-  pb.add(boxG, M4(tcx, 49.4, tcz, Math.PI / 4, 0.9, 0.05, 0.05), 0x2d2a26);
+  // coal heaps by the boiler house and along the yard track (wagon photo)
+  heap(pb, -78, 899, 4.2, 2.4, 0x2f2c29); heap(pb, -69.5, 906, 3.0, 1.8, 0x34302c); heap(pb, -81, 910.5, 2.4, 1.4, 0x312d2a);
+  heap(pb, -58, 935.6, 2.4, 1.3, 0x34312d); heap(pb, -37, 933.5, 2.8, 1.5, 0x2f2c29);
 
-  // --- south sector (left side of the photos)
-  // tall cellar tower ("věž sklepů", 7 storeys + mansard) — elevation 12, photos 3, 13
-  const CT = { x0: -82, x1: -64, z0: 978, z1: 996 };
-  wb.block(CT.x0, CT.x1, CT.z0, CT.z1, [0, 1.2, 5.6, 9.8, 14, 18.2, 22.4, 26.6, 29.6, 30.6],
-    { all: (i, j) => (j === 0 ? 'plinthWin' : j === 1 ? 'rustic' : j === 9 - 1 ? 'corniceHeavy' : j >= 6 ? 'winArch' : 'winPair') }, T_TOWER, 4.5);
-  bands(wb, CT.x0, CT.x1, CT.z0, CT.z1, [5.6, 22.4], T_TOWER, 0.22, 0.4);
-  pilasters(wb, CT.x0, CT.x1, CT.z0, CT.z1, 1.2, 30.2, T_TOWER, 1.1, 0.25);
-  wb.box(CT.x0 - 0.55, CT.x1 + 0.55, 30.2, 31.0, CT.z0 - 0.55, CT.z1 + 0.55, 'stone', STONE, { bottom: true });
-  mansardRoof(rb, CT.x0, CT.x1, CT.z0, CT.z1, 31.0, 3.8, 1.5, 2.6, 0.3, SLATE3);
-  mansardCaps(rb, CT.x0, CT.x1, CT.z0, CT.z1, 31.0, 3.8, 1.5, 2.6, 0.3, SLATE3);
-  for (const [fx, fz, rot] of [[CT.x1, CT.z1, Math.PI / 2], [CT.x0, CT.z1, 0], [CT.x0, CT.z0, -Math.PI / 2], [CT.x1, CT.z0, Math.PI]]) {
-    wb.at(fx, fz, rot); rb.at(fx, fz, rot);
-    for (const lx of [4.5, 9, 13.5]) dormer(wb, rb, lx, 0.15, lx === 9 ? 2.8 : 2.2, 31.25, lx === 9 ? 2.2 : 1.9, 2.0, T_TOWER, SLATE3, 'dormerWin');
-  }
-  wb.reset(); rb.reset();
-  wb.cyl(-73, 987, 37.4, 39.4, 1.3, 1.2, 8, 1, 'louver', T_TOWER, { smooth: false });
-  spire(rb, -73, 987, [[39.4, 1.65], [40.2, 1.2], [42.2, 0]], 8, SLATE3, 0);
-  pb.add(ballG, M4(-73, 42.4, 987, 0, 0.2, 0.2, 0.2), 0xc9a64e);
-  for (const [x, z] of [[-66, 980], [-80, 994], [-80, 980], [-66, 994]]) chimney(wb, x, z, 33, 4.2);
-  // long cellar block (Sklepy) with the raised cooling-ship hall and its ventilating lantern (section 17)
-  wb.block(-170, -82, 980, 1030, [0, 1.2, 5.8, 10.2, 14.6], { all: (i, j) => (j === 0 ? 'plinthWin' : 'malt') }, T_CELLAR, 4);
-  wb.box(-170.45, -81.55, 14.2, 14.95, 979.55, 1030.45, 'corniceHeavy', T_CELLAR);
-  bands(wb, -170, -82, 980, 1030, [5.8], T_CELLAR);
-  GR(-170, -82, 980, 1030, 14.8, 5.5, 'x', 0.5, SLATE, T_CELLAR, 'plain');
-  for (const x of [-165, -158, -95, -88]) for (const z of [990, 1020]) chimney(wb, x, z, 15.6, 3.2); // vent stacks on the cellar roofs (photo 3)
-  wb.block(-150, -102, 995, 1015, [16, 21.5], { all: 'arcadeWin' }, T_CELLAR, 4);
-  GR(-150, -102, 995, 1015, 21.5, 3.6, 'x', 0.4, SLATE2, T_CELLAR, 'winRound');
-  wb.block(-144, -108, 1003.4, 1006.6, [24.6, 26.4], { all: 'louver' }, T_CELLAR, 3);
-  GR(-144, -108, 1003.4, 1006.6, 26.4, 1.0, 'x', 0.3, SLATE2, T_CELLAR, 'plain');
-  // expedition / bottling (Stáčení piva) with the loading ramp — frames the end of the drive
-  stacheni(wb, rb, pb);
-  // fire station + washing hall (Požárna a umývárna) with a hose tower
-  wb.block(-176, -140, 938, 972, [0, 0.8, 4.8, 8.4], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? (i % 2 ? 'loadDoor' : 'win') : 'winSmall') }, OCHRE, 4);
-  GR(-176, -140, 938, 972, 8.4, 5, 'x', 0.4, RED2, OCHRE, 'gable');
-  wb.block(-174, -169, 932, 937.5, [0, 4, 8, 12, 16.5], { all: (i, j) => (j === 0 ? 'gate' : 'winSmall') }, OCHRE, 5);
-  rb.cone(-171.5, 934.75, 16.5, 4.2, 4.2, 4, RED2, null, Math.PI / 4, 'world', 2);
-  // sheds (cooperage stores)
-  wb.block(-228, -182, 942, 976, [0, 6.5], { all: 'loadDoor', w: 'plain', n: 'plain' }, CREAM2, 4.6);
-  GR(-228, -182, 942, 976, 6.5, 4, 'x', 0.4, SLATE, CREAM2, 'plain');
-
-  // administration villa (big, by the gate) — facade to the road (east)
-  adminVilla(wb, rb, pb, -14, 1004);
-  smallVilla(wb, rb, -16, 1042);
-
-  // coal heaps by the boiler house and at the siding (photos 9, 16)
-  heap(pb, -15, 889, 3.6, 2.2, 0x2f2c29); heap(pb, -19.5, 887.5, 2.2, 1.4, 0x34302c);
-  heap(pb, -120, 891.5, 3.0, 1.8, 0x34312d);
-
-  // ------------------------------------------------------------------ perimeter fence + gate
+  // ------------------------------------------------------------------ perimeter fence + gates
   const gw = gateway(wb, pb, route, a.gate);
-  const ZN = 914, ZS = 962; // where the fence leaves the x = FX line toward the gate pillars
+  const GZN = 922; // where the fence leaves the x = FX line toward the right gate pillar
   const toward = (p, q, d) => { const l = Math.hypot(q[0] - p[0], q[1] - p[1]); return [p[0] + ((q[0] - p[0]) * d) / l, p[1] + ((q[1] - p[1]) * d) / l]; };
+  const sLen = Math.hypot(SW[0] - SM[0], SW[1] - SM[1]), sGate = sLen * ((-232 - SM[0]) / (SW[0] - SM[0])); // "menší vjezd"
   const fence = buildFence(wb, kit, [
-    { a: [FX, Z0], b: [FX, ZN], gaps: [[RZ - 4.5 - Z0, RZ + 4.5 - Z0]] }, // east, along the field road (rail opening)
-    { a: [FX, ZN], b: toward(gw.right, [FX, ZN], 1.3) },                 // swing in to the right gate pillar
-    { a: toward(gw.left, [FX, ZS], 1.3), b: [FX, ZS] },                  // from the left gate pillar back to the line
-    { a: [FX, ZS], b: [FX, Z1] },
-    { a: [FX, Z1], b: [X0, Z1] }, // south
-    { a: [X0, Z1], b: [X0, Z0] }, // west
-    { a: [X0, Z0], b: [FX, Z0] }, // north
+    { a: NE, b: [FX, GZN], gaps: [[RZ - 4.5 - NE[1], RZ + 4.5 - NE[1]]] }, // east, along the field road (rail opening)
+    { a: [FX, GZN], b: toward(gw.right, [FX, GZN], 1.3) },                // swing in to the right gate pillar
+    { a: toward(gw.left, SE, 1.3), b: SE },                               // from the left gate pillar to the SE corner
+    { a: SE, b: SM },                                                     // diagonal street (south-east)
+    { a: SM, b: SW, gaps: [[sGate - 3.4, sGate + 3.4]] },                 // south, with the smaller entrance
+    { a: SW, b: NW },                                                     // west
+    { a: NW, b: NE },                                                     // north
   ]);
+  for (const sg of [-1, 1]) {
+    const t = (sGate + sg * 3.6) / sLen, x = SM[0] + (SW[0] - SM[0]) * t, z = SM[1] + (SW[1] - SM[1]) * t;
+    wb.block(x - 0.6, x + 0.6, z - 0.6, z + 0.6, [0, 0.6, 3.2], { all: (i, j) => (j === 0 ? 'plinth' : 'stone') }, 0xe6dccb, 1.2);
+    wb.box(x - 0.75, x + 0.75, 3.2, 3.5, z - 0.75, z + 0.75, 'stone', 0xd8cebd);
+    wb.cone(x, z, 3.5, 0.6, 0.75, 4, 0xcfc5b2, 'stone', Math.PI / 4);
+  }
 
   // ------------------------------------------------------------------ trees, lamps, finish marks, props
-  for (const z of [1010, 1024, 1048, 1062, 1076]) addTree(pb, -9.5, z, 1.1, R);
-  for (const [x, z] of [[-42, 1058], [-50, 1074], [-30, 1080], [-9.5, 796], [-9.5, 812], [-9.5, 826], [-38, 798], [-38, 818], [-40, 836], [-58, 1050], [-75, 1052]]) addTree(pb, x, z, 1.1, R);
-  for (let x = -100; x > -230; x -= 22) addTree(pb, x, 1084, 1.0, R);
-  for (let z = 1076; z > 990; z -= 24) addTree(pb, -231, z, 1.0, R);
-  // villa garden (photos 4, 11): a big lime in front of the villa, columnar poplars along the fence, shrubs
-  addTree(pb, -9.4, 989, 1.15, R);
-  for (const z of [976, 1001, 1017, 1032, 1055, 1069]) poplar(pb, -8.4, z, R);
-  for (const [x, z] of [[-11.5, 980], [-11.8, 996], [-10.8, 1040], [-12.5, 1046], [-36.5, 1012], [-38, 1030], [-34, 1048]]) shrub(pb, x, z, R);
-  for (const [x, z] of [[-20, 966], [-48, 967], [-28, 934], [-62, 933], [-92, 932], [-120, 930]]) addLamp(pb, x, z, 4.6);
+  // avenue along the diagonal street outside the fence (aerial postcard) + garden trees
+  for (let t = 0.04; t < 1; t += 0.13) addTree(pb, SE[0] + (SM[0] - SE[0]) * t + 2.6, SE[1] + (SM[1] - SE[1]) * t + 4.6, 1.1, R);
+  for (let x = -125; x > -280; x -= 24) addTree(pb, x, 1032 + (x + 109) * -0.19 + 6, 1.0, R);
+  addTree(pb, -11.5, 966.5, 1.15, R); addTree(pb, -84, 1001, 1.05, R); addTree(pb, -96, 1007, 1.0, R);
+  for (const [x, z] of [[-44, 1003], [-30, 993]]) poplar(pb, x, z, R);
+  for (const [x, z] of [[-28, 912], [-28, 884], [-52, 912], [-35, 887]]) addTree(pb, x, z, 0.95, R);
+  for (const z of [878, 894, 906, 919]) poplar(pb, -8.6, z, R);
+  for (const x of [-70, -86, -150, -190, -230]) addTree(pb, x, 796.5, 1.0, R);
+  for (const z of [900, 930, 960, 990, 1020]) addTree(pb, -279, z, 1.0, R);
+  for (const [x, z] of [[-9.8, 964], [-28, 961.5], [-46, 969], [-60, 983.5], [-12, 924]]) shrub(pb, x, z, R);
+  for (const [x, z] of [[-22, 933], [-52, 937.6], [-80, 937.6], [-62, 965], [-92, 966], [-130, 935]]) addLamp(pb, x, z, 4.6);
 
   finishMarks(pb, a.finish);
   const barrels = [];
   rampBarrels(barrels);
-  for (const [bx, bz] of [[-150, 892], [-162, 893], [-176, 892]]) barrelPile(barrels, bx, bz, 4, 0);
-  barrelPile(barrels, -46, 926, 4, Math.PI / 2);
-  barrelPile(barrels, -132, 931, 3, 0);
-  barrelPile(barrels, -105, 930, 5, Math.PI / 2);
+  barrelPile(barrels, -112, 934.4, 5, 0, 1.0); barrelPile(barrels, -96, 934.4, 4, 0, 1.0); barrelPile(barrels, -70, 934.4, 4, 0, 1.0);
+  barrelPile(barrels, -14, 929, 4, 0);
+  barrelPile(barrels, -150, 980, 4, 0);
   // crates + carts
-  for (let i = 0; i < 10; i++) pb.add(boxG, M4(-143 + R() * 6, 0.35, 930 + R() * 5, R() * 0.4, 0.8, 0.7, 0.8), i % 2 ? 0x8a6a46 : 0x9a7b55);
-  handCart(pb, -96.5, 976.5, 0.4);
-  handCart(pb, -170, 893.8, 1.6);
+  for (let i = 0; i < 10; i++) pb.add(boxG, M4(-150 + R() * 12, 0.35, 934.8 + R() * 2.2, R() * 0.4, 0.8, 0.7, 0.8), i % 2 ? 0x8a6a46 : 0x9a7b55);
+  handCart(pb, -95, 979, 0.4);
+  handCart(pb, -140, 935.6, 1.6);
 
   // flagpoles (static) — the flags themselves are one instanced dynamic mesh
-  const FLAGS = [{ x: -95.6, z: 975, top: 11, s: 1 }, { x: -18, z: 989, top: 25.5, s: 1.25 }];
+  const admTop = local(ADM, 0, 0);
+  const FLAGS = [{ x: -95.4, z: 977.6, y0: 0, top: 11, s: 1 }, { x: admTop[0], z: admTop[1], y0: 14.6, top: 21.6, s: 1.2 }];
   for (const f of FLAGS) {
-    const y0 = f.top > 12 ? 17.6 : 0;
-    pb.add(cylG, M4(f.x, (y0 + f.top) / 2, f.z, 0, 0.07 * f.s, f.top - y0, 0.07 * f.s), 0xe8e2d6);
+    pb.add(cylG, M4(f.x, (f.y0 + f.top) / 2, f.z, 0, 0.07 * f.s, f.top - f.y0, 0.07 * f.s), 0xe8e2d6);
     pb.add(ballG, M4(f.x, f.top + 0.1, f.z, 0, 0.13 * f.s, 0.13 * f.s, 0.13 * f.s), 0xc9a64e);
   }
 
@@ -325,22 +211,20 @@ export function buildSvetovar(ctx) {
   add(pb.mesh(kit.mats.props, { name: 'svetovar-props' }));
   add(gb.mesh(kit.mats.ground, { cast: false, name: 'svetovar-yard' }));
   add(fence.panels);
-  const wagons = wagonMesh(kit, wagonsZ);
-  add(wagons);
-  const barrelInst = barrelMesh(kit, barrels);
-  add(barrelInst);
+  add(wagonMesh(kit, wagonsAt));
+  add(barrelMesh(kit, barrels));
 
   // coal smoke from the chimney: dark, drifting west-south-west so it streams sideways across the sky in
   // both the aerial (from SE) and the field / crane menu shots (from NE)
-  const smoke = createSmoke(kit, camera, [CH[0], 58.9, CH[1]], { count: 34, rise: 9, drift: [-34, 0, 10], size: [4.0, 22], alpha: 0.42, period: 17, material: kit.mats.smokeDark, spread: 2.0 });
+  const smoke = createSmoke(kit, camera, [CH[0], CH_H + 0.6, CH[1]], { count: 34, rise: 9, drift: [-34, 0, 10], size: [4.0, 22], alpha: 0.42, period: 17, material: kit.mats.smokeDark, spread: 2.0 });
   smoke.mesh.name = 'svetovar-smoke';
   group.add(smoke.mesh);
-  // white steam from the brewhouse vapour stacks (photo 3)
+  // white steam from the brewhouse vapour stacks
   const steam = STACKS.map(([x, z], i) => {
-    const st = createSmoke(kit, camera, [x, 38.6, z], { count: 10, rise: 10, drift: [-16, 0, 5], size: [2.0, 10], alpha: 0.95, period: 8 + i * 1.3, spread: 1.5 });
+    const st = createSmoke(kit, camera, [x, 26.4, z], { count: 10, rise: 10, drift: [-16, 0, 5], size: [2.0, 10], alpha: 0.95, period: 8 + i * 1.3, spread: 1.5 });
     st.mesh.name = 'svetovar-steam'; group.add(st.mesh); return st;
   });
-  // Czechoslovak flags (ramp + administration villa)
+  // Czechoslovak flags (ramp + administration building)
   const flags = makeFlags(kit, FLAGS);
   group.add(flags.mesh);
   ctx.dynamic.push({ update: (dt, t) => { smoke.update(dt, t); steam[0].update(dt, t + 3.1); steam[1].update(dt, t); flags.update(dt, t); } });
@@ -354,7 +238,7 @@ export function buildSvetovar(ctx) {
     const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3;
     triangles += n * (o.isInstancedMesh ? o.count : 1);
   });
-  ctx.landmarks.svetovar = { group, triangles, drawCalls: group.children.length };
+  ctx.landmarks.svetovar = { group, triangles, drawCalls: group.children.length, chimney: { x: CH[0], z: CH[1], h: CH_H } };
   return {};
 }
 
@@ -363,10 +247,37 @@ const ballG = new THREE.SphereGeometry(1, 8, 6);
 const cylG = new THREE.CylinderGeometry(1, 1, 1, 10);
 const coneG = new THREE.ConeGeometry(1, 1, 10);
 
+/** World point of a building-local offset (lx along the front, lz toward the front). */
+function local(f, lx, lz) {
+  const c = Math.cos(f.rot), s = Math.sin(f.rot);
+  return [f.x + lx * c + lz * s, f.z - lx * s + lz * c];
+}
+/** Put builders into a rotated building frame (+ optional local offset / extra yaw). */
+function frame(f, lx = 0, lz = 0, r = 0, ...bs) {
+  const [x, z] = local(f, lx, lz);
+  for (const b of bs) b.at(x, z, f.rot + r);
+}
+/** Flat horizontal polygon (xz points), oriented to face up whatever the input winding. */
+function flat(b, pts, y, color) {
+  let s = 0;
+  for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; s += p[0] * q[1] - q[0] * p[1]; }
+  const P = (s > 0 ? pts.slice().reverse() : pts).map(([x, z]) => [x, y, z]);
+  b.poly(P, color);
+}
+
 function chimney(wb, x, z, y0, h) {
   wb.box(x - 0.45, x + 0.45, y0, y0 + h, z - 0.45, z + 0.45, 'brick', 0xd8c8b8);
   wb.box(x - 0.58, x + 0.58, y0 + h, y0 + h + 0.28, z - 0.58, z + 0.58, 'stone', 0xd0c4b0);
   wb.box(x - 0.3, x + 0.3, y0 + h + 0.28, y0 + h + 0.5, z - 0.3, z + 0.3, 'dark', 0xffffff);
+}
+
+function GRf(wb, rb, x0, x1, z0, z1, yE, h, axis, o, roofCol, wallCol, gTile = 'plain', opts = {}) {
+  gableRoof(rb, opts.noWalls ? null : wb, x0, x1, z0, z1, yE, h, axis, o, roofCol, wallCol, gTile, opts);
+  gableCaps(rb, x0, x1, z0, z1, yE, h, axis, o, roofCol, opts.ends !== false);
+}
+function HRf(rb, x0, x1, z0, z1, yE, h, o, roofCol) {
+  hipRoof(rb, x0, x1, z0, z1, yE, h, o, roofCol);
+  hipCaps(rb, x0, x1, z0, z1, yE, h, o, roofCol);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -388,6 +299,18 @@ function pilasters(wb, x0, x1, z0, z1, y0, y1, color, w = 0.9, p = 0.2) {
     const xa = sx < 0 ? x - p : x - w + p, xb = sx < 0 ? x + w - p : x + p;
     const za = sz < 0 ? z - p : z - w + p, zb = sz < 0 ? z + w - p : z + p;
     wb.box(Math.min(xa, xb), Math.max(xa, xb), y0, y1, Math.min(za, zb), Math.max(za, zb), 'plain', color, { top: false });
+  }
+}
+/** Flat roof deck (tarred) on top of a block. */
+function deck(wb, x0, x1, z0, z1, y, color = 0x8f877c) {
+  wb.quad([x0, y, z1], [x1, y, z1], [x1, y, z0], [x0, y, z0], color, 'dark');
+}
+/** Iron railing around a flat roof. */
+function railing(pb, x0, x1, z0, z1, y) {
+  for (const [ax, az, bx, bz] of [[x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1], [x0, z1, x0, z0]]) {
+    const L = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(L / 1.6)), yaw = Math.atan2(-(bz - az), bx - ax);
+    pb.add(boxG, M4((ax + bx) / 2, y + 1.0, (az + bz) / 2, yaw, L, 0.06, 0.06), IRON);
+    for (let k = 0; k <= n; k++) pb.add(boxG, M4(ax + ((bx - ax) * k) / n, y + 0.5, az + ((bz - az) * k) / n, 0, 0.05, 1.0, 0.05), IRON);
   }
 }
 /** Ridge roll, eave fascia and verge boards for gableRoof(). */
@@ -433,9 +356,24 @@ function mansardCaps(rb, x0, x1, z0, z1, yE, h1, inset, h2, o, roofCol) {
   }
   hipCaps(rb, x0 + inset, x1 - inset, z0 + inset, z1 - inset, y1, h2, 0, roofCol);
 }
+/** Low hipped roof with a wide kicked-out eave and a soffit (cellar tower, 1911 elevation + postcards). */
+function flaredHip(rb, x0, x1, z0, z1, yE, h, o, col) {
+  const k = 0.35, yK = yE + (o - k) * 0.3;
+  const lo = [[x0 - o, z1 + o], [x1 + o, z1 + o], [x1 + o, z0 - o], [x0 - o, z0 - o]];
+  const hi = [[x0 - k, z1 + k], [x1 + k, z1 + k], [x1 + k, z0 - k], [x0 - k, z0 - k]];
+  const wl = [[x0, z1], [x1, z1], [x1, z0], [x0, z0]];
+  for (let i = 0; i < 4; i++) {
+    const j = (i + 1) % 4;
+    rb.poly([[lo[i][0], yE, lo[i][1]], [lo[j][0], yE, lo[j][1]], [hi[j][0], yK, hi[j][1]], [hi[i][0], yK, hi[i][1]]], col, null, 'world');
+    rb.poly([[wl[i][0], yE - 0.03, wl[i][1]], [wl[j][0], yE - 0.03, wl[j][1]], [lo[j][0], yE - 0.03, lo[j][1]], [lo[i][0], yE - 0.03, lo[i][1]]], 0x6b625a, null, 'world'); // soffit
+    rb.beam([lo[i][0], yE - 0.1, lo[i][1]], [lo[j][0], yE - 0.1, lo[j][1]], 0.14, 0.24, FASCIA);
+  }
+  hipRoof(rb, x0, x1, z0, z1, yK, h - (yK - yE), k, col);
+  hipCaps(rb, x0, x1, z0, z1, yK, h - (yK - yE), k, col);
+}
 /** A row of dormers on one roof slope of the footprint fp. yW = roof height at the wall line, slope = rise per metre inward.
  *  xs = positions along the face measured from its start (s face: from x0, e: from z1, n: from x1, w: from z0). */
-function dormerRow(wb, rb, fp, side, yW, slope, xs, { w = 1.6, hw = 1.5, d0 = 1.2, tile = 'dormerWin', wallCol = CREAM, roofCol = SLATE } = {}) {
+function dormerRow(wb, rb, fp, side, yW, slope, xs, { w = 1.6, hw = 1.5, d0 = 1.2, tile = 'dormerWin', wallCol = T_MALT, roofCol = SLATE } = {}) {
   const fr = { s: [fp.x0, fp.z1, 0], e: [fp.x1, fp.z1, Math.PI / 2], n: [fp.x1, fp.z0, Math.PI], w: [fp.x0, fp.z0, -Math.PI / 2] }[side];
   wb.at(fr[0], fr[1], fr[2]); rb.at(fr[0], fr[1], fr[2]);
   const yb = yW + d0 * slope - 0.08, depth = (hw + w * 0.45 + 0.35) / slope;
@@ -454,15 +392,30 @@ function spire(rb, cx, cz, prof, sides, color, rot = 0) {
     }
   }
 }
-/** Ventilation turret on the storage-block ridge (photos 8, 15): square base, louvred drum, onion cap. */
-function ventTurret(wb, rb, x, z, col) {
-  wb.box(x - 2.2, x + 2.2, 19, 22.5, z - 2.2, z + 2.2, 'plain', col);
-  wb.box(x - 2.4, x + 2.4, 22.3, 22.7, z - 2.4, z + 2.4, 'stone', STONE);
-  wb.cyl(x, z, 22.7, 29.8, 1.85, 1.7, 10, 2, 'louver', col, { cap: false });
-  wb.cyl(x, z, 29.8, 30.6, 2.25, 2.25, 10, 1, 'stone', STONE);
-  spire(rb, x, z, [[30.6, 2.35], [31.5, 2.5], [32.6, 1.7], [33.5, 0.55], [34.7, 0.18], [35.3, 0]], 10, SLATE, 0);
-  rb.add(ballG, M4(x, 35.4, z, 0, 0.26, 0.26, 0.26), 0xc9a64e);
-  rb.add(boxG, M4(x, 36.4, z, 0, 0.07, 2.0, 0.07), 0x3a3632);
+/** Round-headed (segmental) parapet gable facing +X ('e') or -X ('w'), centred at (x, zc), base y0. */
+function archGable(wb, face, x, zc, y0, w, h, color, win = 2.6) {
+  const s = new THREE.Shape(), hw = w / 2, h0 = 0.5, N = 12;
+  s.moveTo(-hw, 0); s.lineTo(-hw, h0);
+  for (let k = 1; k < N; k++) { const t = (k / N) * Math.PI; s.lineTo(-hw * Math.cos(t), h0 + (h - h0) * Math.sin(t)); }
+  s.lineTo(hw, h0); s.lineTo(hw, 0); s.closePath();
+  const geo = new THREE.ShapeGeometry(s, 1);
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox, uv = geo.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) - bb.min.x) / (bb.max.x - bb.min.x), (uv.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
+  const ry = face === 'e' ? Math.PI / 2 : -Math.PI / 2, sg = face === 'e' ? 1 : -1;
+  wb.add(geo, M4(x, y0, zc, ry), color, 'plain');
+  wb.add(geo, M4(x - sg * 0.3, y0, zc, ry + Math.PI), color, 'plain');
+  if (win > 0) { // round lunette window, square quad so it stays round
+    const xw = x + sg * 0.02, yc = y0 + h0 + (h - h0) * 0.42, r = win / 2;
+    wb.quad([xw, yc - r, zc + sg * r], [xw, yc - r, zc - sg * r], [xw, yc + r, zc - sg * r], [xw, yc + r, zc + sg * r], color, 'winRound');
+  }
+  // coping along the arch
+  for (let k = 0; k < N; k++) {
+    const t0 = (k / N) * Math.PI, t1 = ((k + 1) / N) * Math.PI;
+    const p = (t) => [x - sg * 0.15, y0 + h0 + (h - h0) * Math.sin(t) + 0.08, zc - sg * -hw * Math.cos(t)];
+    wb.beam(p(t0), p(t1), 0.5, 0.18, STONE, 'stone', { ends: false });
+  }
+  geo.dispose();
 }
 /** Columnar poplar (photo 11). */
 function poplar(pb, x, z, R) {
@@ -483,20 +436,348 @@ function heap(pb, x, z, r, h, color) {
 const heapG = (() => { const g = new THREE.ConeGeometry(1, 1, 9, 2); g.translate(0, 0.5, 0); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (y > 0.2 && y < 0.8) { p.setX(i, p.getX(i) * 1.25); p.setZ(i, p.getZ(i) * 1.25); } } g.computeVertexNormals(); return g; })();
 
 // ---------------------------------------------------------------------------------------------
+// Buildings
+// ---------------------------------------------------------------------------------------------
+/** Brewhouse row between the tracks (plan: VARNA · SILO · CHLADIČ · STROJOVNA · KOTELNA; sections 1912). */
+function brewhouse(wb, rb, pb, GR, HR) {
+  // --- Varna: five storeys under a flat roof behind a parapet with urns (1911 elevation ≈ 16 m)
+  const { x0, x1, z0, z1 } = VAR, T = TWR;
+  const ys = [0, 1.2, 4.8, 8.0, 11.2, 14.4, 15.8];
+  wb.block(x0, x1, z0, z1, ys, { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'rusticArch' : j === 5 ? 'corniceHeavy' : j === 4 ? 'winArch' : 'winPair') }, T_BREW, 3.8);
+  bands(wb, x0, x1, z0, z1, [4.8], T_BREW, 0.22, 0.4);
+  pilasters(wb, x0, x1, z0, z1, 1.2, 15.8, T_BREW, 1.0, 0.25);
+  deck(wb, x0, x1, z0, z1, 15.8);
+  ring(wb, x0, x1, z0, z1, 15.8, 16.7, 0.1, 0.3, 'stone', T_BREW);
+  ring(wb, x0, x1, z0, z1, 16.7, 16.9, 0.2, 0.5, 'stone', STONE);
+  for (const [ax, az, bx, bz] of [[x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1], [x0, z1, x0, z0]]) {
+    const L = Math.hypot(bx - ax, bz - az), n = Math.round(L / 3.2);
+    for (let k = 0; k <= n; k++) {
+      const x = ax + ((bx - ax) * k) / n, z = az + ((bz - az) * k) / n;
+      if (x < T.x1 + 0.4 && z > T.z0 - 0.4) continue; // inside the clock tower
+      pb.add(cylG, M4(x, 17.15, z, 0, 0.22, 0.5, 0.22), 0xd2c8b4);
+      pb.add(ballG, M4(x, 17.55, z, 0, 0.26, 0.24, 0.26), 0xd2c8b4);
+    }
+  }
+  // timber-louvred coolship room on the roof — the dark band right of the tower in the photos
+  const C = { x0: -152.6, x1: -141.6, z0: 895.6, z1: 914.4 };
+  wb.block(C.x0, C.x1, C.z0, C.z1, [15.8, 19.6], { all: 'slats' }, 0xbab2a8, 2.6);
+  HR(C.x0, C.x1, C.z0, C.z1, 19.6, 1.6, 0.45, SLATE2);
+  // vapour stacks of the two brew kettles (section 1912): iron pipes through the roof, conical hats
+  for (const [x, z] of STACKS) {
+    pb.add(cylG, M4(x, 21, z, 0, 0.42, 9.6, 0.42), 0x3a3733);
+    pb.add(cylG, M4(x, 21.3, z, 0, 0.6, 0.45, 0.6), 0x2e2b28);
+    pb.add(coneG, M4(x, 26.1, z, 0, 0.95, 0.65, 0.95), 0x2e2b28);
+    for (const k of [0, 1, 2]) { const ang = (k / 3) * Math.PI * 2; pb.add(boxG, M4(x + Math.sin(ang) * 0.5, 25.6, z + Math.cos(ang) * 0.5, ang, 0.06, 0.55, 0.06), 0x2e2b28); }
+  }
+  // --- clock tower at the SW corner: body to 24.6 m, clock at 21.6 m, bell-cast roof, lantern, spire (≈ 34 m)
+  const tcx = (T.x0 + T.x1) / 2, tcz = (T.z0 + T.z1) / 2;
+  wb.block(T.x0, T.x1, T.z0, T.z1, [0, 1.2, 4.8, 8.0, 11.2, 14.4, 16.9, 19.5, 23.7, 24.6],
+    { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'rusticArch' : j === 6 ? 'arcadeWin' : j === 7 ? 'plain' : j === 8 ? 'corniceHeavy' : j === 5 ? 'winArch' : 'winPair') }, T_BREW, 3.7);
+  bands(wb, T.x0, T.x1, T.z0, T.z1, [4.8, 16.9], T_BREW, 0.22, 0.38);
+  pilasters(wb, T.x0, T.x1, T.z0, T.z1, 1.2, 24.6, T_BREW, 0.9, 0.24);
+  wb.box(T.x0 - 0.45, T.x1 + 0.45, 24.6, 25.1, T.z0 - 0.45, T.z1 + 0.45, 'stone', STONE, { bottom: true });
+  const CD = 1.5, CY = 21.6; // clock dials on all four faces (square quads so the dial stays round)
+  wb.quad([T.x1 + 0.1, CY - CD, tcz + CD], [T.x1 + 0.1, CY - CD, tcz - CD], [T.x1 + 0.1, CY + CD, tcz - CD], [T.x1 + 0.1, CY + CD, tcz + CD], T_BREW, 'clockFace');
+  wb.quad([T.x0 - 0.1, CY - CD, tcz - CD], [T.x0 - 0.1, CY - CD, tcz + CD], [T.x0 - 0.1, CY + CD, tcz + CD], [T.x0 - 0.1, CY + CD, tcz - CD], T_BREW, 'clockFace');
+  wb.quad([tcx - CD, CY - CD, T.z1 + 0.1], [tcx + CD, CY - CD, T.z1 + 0.1], [tcx + CD, CY + CD, T.z1 + 0.1], [tcx - CD, CY + CD, T.z1 + 0.1], T_BREW, 'clockFace');
+  wb.quad([tcx + CD, CY - CD, T.z0 - 0.1], [tcx - CD, CY - CD, T.z0 - 0.1], [tcx - CD, CY + CD, T.z0 - 0.1], [tcx + CD, CY + CD, T.z0 - 0.1], T_BREW, 'clockFace');
+  // corner bartizans with pointed caps (elevation 1911)
+  for (const [dx, dz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+    const px = tcx + dx * 3.55, pz = tcz + dz * 3.75;
+    wb.cyl(px, pz, 25.1, 26.5, 0.46, 0.42, 6, 1, 'louver', T_BREW, { smooth: false });
+    rb.cone(px, pz, 26.5, 1.7, 0.6, 6, SLATE2, null, 0, 'world', 2);
+    pb.add(ballG, M4(px, 28.3, pz, 0, 0.11, 0.11, 0.11), 0xc9a64e);
+  }
+  // bell-cast square roof: flared kick, steep body; small clock-dormers on its faces
+  spire(rb, tcx, tcz, [[25.1, 5.75], [25.6, 5.1], [27.4, 3.3], [28.8, 1.7]], 4, SLATE2, Math.PI / 4);
+  for (const [nx, nz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+    const dx = tcx + nx * 3.5, dz = tcz + nz * 3.6;
+    wb.at(dx, dz, Math.atan2(nx, nz)); rb.at(dx, dz, Math.atan2(nx, nz));
+    dormer(wb, rb, 0, 0, 1.3, 25.5, 1.3, 1.8, T_BREW, SLATE2, 'winRound');
+    wb.reset(); rb.reset();
+  }
+  wb.cyl(tcx, tcz, 28.8, 30.4, 0.85, 0.8, 8, 1, 'louver', T_BREW, { smooth: false });
+  wb.cyl(tcx, tcz, 30.4, 30.65, 1.0, 1.0, 8, 1, 'stone', STONE, { smooth: false });
+  spire(rb, tcx, tcz, [[30.65, 1.02], [31.3, 0.62], [33.8, 0.0]], 8, SLATE2, 0);
+  pb.add(ballG, M4(tcx, 34.05, tcz, 0, 0.24, 0.24, 0.24), 0xc9a64e);
+  pb.add(boxG, M4(tcx, 35.0, tcz, 0, 0.07, 1.9, 0.07), IRON);
+  pb.add(boxG, M4(tcx, 35.2, tcz, Math.PI / 4, 0.8, 0.05, 0.05), IRON);
+
+  // --- silo: plain tall block, small windows only under the eaves (wagon photo)
+  wb.block(-141, -134, 892, 915, [0, 1.2, 15.0, 17.6, 18.8], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'plain' : j === 2 ? 'winSmall' : 'corniceHeavy') }, CREAM2, 3.8);
+  HR(-141, -134, 892, 915, 18.8, 1.8, 0.35, SLATE);
+  // --- pre-heaters / cooler tower: four storeys, flat roof with a railing (section: XIII–XXII)
+  wb.block(-134, -126, 892, 915, [0, 1.2, 4.6, 8.0, 11.4, 14.2, 15.0], { all: (i, j) => (j === 0 ? 'plinth' : j === 5 ? 'corniceHeavy' : 'win') }, T_MACH, 3.8);
+  deck(wb, -134, -126, 892, 915, 15.0);
+  railing(pb, -133.8, -126.2, 892.2, 914.8, 15.0);
+  // --- machine room: tall arched windows, gabled roof with pedimented dormers, east gable with the round window
+  wb.block(-126, -103, 892, 915, [0, 1.2, 8.8, 10.2], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'winTall' : 'corniceHeavy') }, T_MACH, 3.8);
+  pilasters(wb, -126, -103, 892, 915, 0, 10.2, T_MACH, 0.8, 0.18);
+  GR(-126, -103, 892, 915, 10.2, 5.0, 'x', 0.4, SLATE3, T_MACH, 'plain');
+  for (const [x, sg] of [[-102.92, 1], [-126.08, -1]]) { // round medallion window in both gables (wagon photo)
+    const yc = 12.4, r = 1.25;
+    wb.quad([x, yc - r, 903.5 + sg * r], [x, yc - r, 903.5 - sg * r], [x, yc + r, 903.5 - sg * r], [x, yc + r, 903.5 + sg * r], T_MACH, 'winRound');
+  }
+  for (const x of [-121.5, -117, -112.5, -108]) dormer(wb, rb, x, 915.0, 2.2, 10.4, 1.8, 2.6, T_MACH, SLATE3, 'winArch');
+  // --- boiler house: tall hall, roof ridge north–south with a ventilating lantern
+  wb.block(-103, -86, 891, 915, [0, 1.0, 9.6, 11.2], { all: (i, j) => (j === 1 ? 'winTall' : j === 0 ? 'plinth' : 'corniceHeavy') }, T_BOIL, 4);
+  pilasters(wb, -103, -86, 891, 915, 0, 11.2, T_BOIL, 0.8, 0.18);
+  GR(-103, -86, 891, 915, 11.2, 4.0, 'z', 0.4, SLATE, T_BOIL, 'winRound');
+  wb.block(-96, -93, 895, 911, [14.4, 16.2], { all: 'slats' }, 0xcfc6ba, 3);
+  GR(-96, -93, 895, 911, 16.2, 0.9, 'z', 0.35, SLATE, null, 'plain', { noWalls: true });
+}
+
+/** Chimney: octagonal pedestal, round tapered brick shaft, corbelled crown — 48 m (elevation 1911). */
+function chimneyStack(wb, pb) {
+  const [x, z] = CH, O = { rot: Math.PI / 8, smooth: false };
+  wb.cyl(x, z, 0, 1.4, 3.65, 3.65, 8, 1, 'plinth', 0xffffff, { ...O, cap: false });
+  wb.cyl(x, z, 1.4, 6.6, 3.4, 3.3, 8, 2, 'brickDark', 0xffffff, { ...O, cap: false });
+  wb.cyl(x, z, 6.6, 7.4, 3.7, 3.7, 8, 1, 'stone', 0xd6ccbc, { ...O, cap: true });
+  wb.cyl(x, z, 6.0, 6.6, 3.5, 3.5, 8, 1, 'stone', 0xd6ccbc, { ...O, cap: false });
+  const yS = 7.4, yT = CH_H - 2.4, r0 = 2.3, r1 = 1.62;
+  const shaftR = (y) => r0 + (r1 - r0) * ((y - yS) / (yT - yS));
+  wb.cyl(x, z, yS, yT, r0, r1, 18, 22, 'brickGrey', 0xf2ece4, { cap: false });
+  wb.cyl(x, z, yT, yT + 1.0, r1, 1.95, 18, 1, 'brickDark', 0xffffff, { cap: false });   // corbel flare
+  wb.cyl(x, z, yT + 1.0, yT + 1.9, 1.95, 1.95, 18, 1, 'brickDark', 0xe8ddd0, { cap: false });
+  wb.cyl(x, z, yT + 1.9, yT + 2.3, 2.05, 2.05, 18, 1, 'stone', 0xb8afa2, { cap: false });
+  wb.cyl(x, z, yT + 2.3, CH_H + 0.1, 1.85, 1.75, 18, 1, 'dark', 0xffffff, { cap: true });
+  for (let y = 12; y < yT - 1; y += 6) { const r = shaftR(y) + 0.05; wb.cyl(x, z, y, y + 0.3, r, r, 18, 1, 'dark', 0xffffff, { cap: false }); }
+  pb.add(boxG, M4(x, CH_H + 1.6, z + 1.4, 0, 0.06, 3.2, 0.06), IRON); // lightning rod
+}
+
+/** Malt house: five low malting floors under a hipped roof with the kiln turret; lower wing to the south-east. */
+function sladovna(wb, rb, pb, GR, HR) {
+  const A = { x0: -148, x1: -106, z0: 829, z1: 855 };
+  const ys = [0, 1.2, 4.8, 8.4, 12.0, 15.6, 19.0];
+  wb.block(A.x0, A.x1, A.z0, A.z1, ys, { all: (i, j) => (j === 0 ? 'plinthWin' : 'malt') }, T_MALT, 4);
+  wb.box(A.x0 - 0.45, A.x1 + 0.45, 18.7, 19.4, A.z0 - 0.45, A.z1 + 0.45, 'corniceHeavy', T_MALT);
+  bands(wb, A.x0, A.x1, A.z0, A.z1, [4.8], T_MALT);
+  pilasters(wb, A.x0, A.x1, A.z0, A.z1, 0, 18.7, T_MALT);
+  HR(A.x0, A.x1, A.z0, A.z1, 19.4, 8.0, 0.6, SLATE2);
+  const sl = 8.0 / (13 + 0.6), yW = 19.4 + 0.6 * sl;
+  for (const side of ['s', 'n']) dormerRow(wb, rb, A, side, yW, sl, [7, 15, 23, 31], { wallCol: T_MALT, roofCol: SLATE2, w: 1.5, hw: 1.0, d0: 1.6 });
+  dormerRow(wb, rb, A, 'e', yW, sl, [13], { wallCol: T_MALT, roofCol: SLATE2, w: 1.5, hw: 1.0, d0: 1.6 });
+  for (const x of [-131, -116]) chimney(wb, x, 842, 24.5, 3.2);
+  kilnTurret(wb, rb, pb, -140, 842);
+  // lower wing (4 storeys) — the part in front of the hipped block in the photo with the people
+  const wing = (x0, x1, z0, z1) => {
+    wb.block(x0, x1, z0, z1, [0, 1.2, 4.8, 8.4, 12.0, 15.2], { all: (i, j) => (j === 0 ? 'plinthWin' : 'malt') }, T_MALT2, 4);
+    wb.box(x0 - 0.4, x1 + 0.4, 14.9, 15.5, z0 - 0.4, z1 + 0.4, 'corniceHeavy', T_MALT2);
+  };
+  wing(-106, -94, 829, 866); wing(-133, -106, 855, 866);
+  HR(-106, -94, 829, 866, 15.5, 2.6, 0.45, SLATE2);
+  HR(-133, -106, 855, 866, 15.5, 2.2, 0.45, SLATE2);
+}
+/** Kiln turret on the malt house (postcards): plastered drum, louvred neck, wide flat hat, small top + spike. */
+function kilnTurret(wb, rb, pb, x, z) {
+  wb.cyl(x, z, 22.0, 31.0, 1.55, 1.45, 12, 3, 'plain', T_MALT, { cap: false });
+  wb.cyl(x, z, 29.0, 29.4, 1.6, 1.6, 12, 1, 'stone', STONE, { cap: false });
+  wb.cyl(x, z, 31.0, 31.9, 1.25, 1.25, 12, 1, 'louver', T_MALT, { cap: false });
+  wb.cyl(x, z, 31.75, 31.95, 2.75, 2.75, 12, 1, 'dark', 0x8a8278, { cap: false });
+  rb.cone(x, z, 31.95, 0.85, 2.75, 12, SLATE, null, 0, 'world', 2);
+  wb.cyl(x, z, 32.5, 33.4, 0.5, 0.45, 8, 1, 'plain', T_MALT, { smooth: false });
+  rb.cone(x, z, 33.4, 0.7, 0.75, 8, SLATE, null, 0, 'world', 2);
+  pb.add(boxG, M4(x, 34.8, z, 0, 0.06, 1.6, 0.06), IRON);
+}
+
+/** Coachmen's flats + garage in the NE corner: the big gable to the road with one attic window (photos). */
+function coachmensHouse(wb, rb, GR, HR) {
+  const C = T_HOUSE;
+  wb.block(-23, -8, 797, 810, [0, 0.9, 4.4, 7.9], { all: (i, j) => (j === 0 ? 'plinthWin' : 'win') }, C, 3.4);
+  bands(wb, -23, -8, 797, 810, [0.95, 4.4], C, 0.14, 0.26);
+  GR(-23, -8, 797, 810, 7.9, 7.4, 'x', 0.45, SLATE, C, 'plain');
+  wb.box(-8.4, -7.9, 7.6, 8.2, 796.6, 810.4, 'corniceHeavy', C, { top: false });
+  for (const [zc, y0, hh, tl] of [[803.5, 10.0, 2.8, 'winPair'], [803.5, 13.6, 1.5, 'winSmall']]) {
+    const hw = tl === 'winPair' ? 1.8 : 0.8;
+    wb.quad([-7.88, y0, zc + hw], [-7.88, y0, zc - hw], [-7.88, y0 + hh, zc - hw], [-7.88, y0 + hh, zc + hw], C, tl);
+  }
+  dormerRow(wb, rb, { x0: -23, x1: -8, z0: 797, z1: 810 }, 's', 7.9 + 0.45 * (7.4 / 6.5), 7.4 / 6.95, [5, 10], { wallCol: C, roofCol: SLATE });
+  chimney(wb, -14, 803.5, 13, 4.6);
+  // garage wing with a hipped roof
+  wb.block(-48, -23, 798, 809, [0, 0.8, 4.4, 6.2], { all: (i, j) => (j === 0 ? 'plinth' : 'win'), s: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'gate' : 'win') }, CREAM2, 3.6);
+  HR(-48, -23, 798, 809, 6.2, 3.8, 0.4, SLATE);
+  for (const side of ['s', 'n']) dormerRow(wb, rb, { x0: -48, x1: -23, z0: 798, z1: 809 }, side, 6.2 + 0.4 * (3.8 / 5.9), 3.8 / 5.9, [6, 12.5, 19], { wallCol: CREAM2, roofCol: SLATE, w: 1.3, hw: 1.1, d0: 0.9 });
+  chimney(wb, -35, 803.5, 9, 2.4);
+}
+
+/** Kantina by the east fence: low hall with arched gables + the octagonal turret with a statue (wagon photo). */
+function kantina(wb, rb, pb) {
+  const C = T_KANT;
+  wb.block(-24, -10, 886, 908, [0, 0.9, 4.8, 5.4], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'arcadeWin' : 'corniceHeavy') }, C, 3.7);
+  mansardRoof(rb, -24, -10, 886, 908, 5.4, 2.0, 1.1, 1.3, 0.35, SLATE2);
+  mansardCaps(rb, -24, -10, 886, 908, 5.4, 2.0, 1.1, 1.3, 0.35, SLATE2);
+  for (const [z0, z1] of [[880, 886.4], [907.6, 914]]) {
+    wb.block(-25, -8.6, z0, z1, [0, 0.9, 4.8, 5.4], { all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'villaWin' : 'corniceHeavy') }, C, 3.2);
+    gableRoof(rb, null, -25, -8.6, z0, z1, 5.4, 3.0, 'x', 0.3, SLATE2, C, 'plain', { ends: false });
+    gableCaps(rb, -25, -8.6, z0, z1, 5.4, 3.0, 'x', 0.3, SLATE2, false);
+    archGable(wb, 'e', -8.25, (z0 + z1) / 2, 5.4, z1 - z0 + 0.5, 3.5, C, 2.2);
+    archGable(wb, 'w', -25.35, (z0 + z1) / 2, 5.4, z1 - z0 + 0.5, 3.5, C, 2.2);
+  }
+  const tx = -17, tz = 897, O = { rot: Math.PI / 8, smooth: false };
+  wb.cyl(tx, tz, 7.0, 10.6, 1.95, 1.9, 8, 1, 'arcadeWin', C, { ...O, cap: false });
+  wb.cyl(tx, tz, 10.6, 11.0, 2.25, 2.25, 8, 1, 'stone', STONE, O);
+  spire(rb, tx, tz, [[11.0, 2.45], [11.6, 2.05], [12.8, 1.3], [13.8, 0.5]], 8, SLATE2, Math.PI / 8);
+  wb.cyl(tx, tz, 13.8, 14.6, 0.5, 0.45, 8, 1, 'louver', C, O);
+  spire(rb, tx, tz, [[14.6, 0.62], [15.0, 0.0]], 8, SLATE2, 0);
+  // the little bronze figure on top
+  const BR = 0x4d4436;
+  pb.add(cylG, M4(tx, 15.55, tz, 0, 0.24, 1.1, 0.2), BR);
+  pb.add(ballG, M4(tx, 16.3, tz, 0, 0.18, 0.2, 0.18), BR);
+  pb.add(boxG, M4(tx + 0.28, 16.25, tz, 0, 0.1, 0.8, 0.1, 0, -0.35), BR);
+}
+
+/** Lager cellars: plain block, two cellar storeys + the hall under a low roof with a ridge lantern (1912 sections). */
+function cellars(wb, rb, pb, GR, HR) {
+  const K = { x0: -203, x1: -166, z0: 941, z1: 989 }, C = T_CELLAR;
+  const ys = [0, 1.2, 7.6, 13.6, 15.0];
+  const t = (i, j) => (j === 0 ? 'plinthWin' : j === 3 ? 'corniceHeavy' : 'malt');
+  wb.block(K.x0, K.x1, K.z0, K.z1, ys, { all: t }, C, 4.6);
+  bands(wb, K.x0, K.x1, K.z0, K.z1, [7.6], C);
+  GR(K.x0, K.x1, K.z0, K.z1, 15.0, 4.2, 'z', 0.5, SLATE, C, 'plain');
+  wb.block(-187, -182, 945, 985, [18.4, 20.2], { all: 'louver' }, C, 3);
+  GR(-187, -182, 945, 985, 20.2, 1.1, 'z', 0.3, SLATE2, C, 'plain');
+  // strip south of the tower (plan: the fifth cellar)
+  wb.block(-166, -156, 960, 989, ys, { all: t, w: null }, C, 4.6);
+  HR(-166, -156, 960, 989, 15.0, 2.4, 0.4, SLATE);
+  for (const [x, z] of [[-198, 952], [-198, 978], [-171, 952], [-171, 978]]) chimney(wb, x, z, 15.4, 2.6); // vent stacks
+}
+
+/** Cellar tower (věž sklepů): seven levels, an Art Nouveau top storey with triple windows, a low hipped
+ *  roof with a wide kicked eave and gabled dormers, a stair tower on the north side (elevation 1911). */
+function cellarTower(wb, rb, pb) {
+  const { x0, x1, z0, z1 } = CT, C = T_TOWER;
+  const ys = [0, 1.2, 5.4, 9.4, 13.2, 17.0, 21.0, 21.6];
+  const t = (i, j) => (j === 0 ? 'plinthWin' : j === 1 ? 'rustic' : j === 6 ? 'corniceHeavy' : j === 2 ? 'winTall' : j === 5 ? 'win' : 'winArch');
+  wb.block(x0, x1, z0, z1, ys, { all: t }, C, 6);
+  wb.block(x0, x1, z0, z1, [21.6, 25.6], { all: 'winTriple' }, C, 6);
+  bands(wb, x0, x1, z0, z1, [5.4, 13.2], C, 0.22, 0.4);
+  pilasters(wb, x0, x1, z0, z1, 1.2, 25.6, C, 1.1, 0.25);
+  // timber brackets under the deep eave
+  for (const [ax, az, bx, bz, nx, nz] of [[x0, z1, x1, z1, 0, 1], [x1, z1, x1, z0, 1, 0], [x1, z0, x0, z0, 0, -1], [x0, z0, x0, z1, -1, 0]]) {
+    const L = Math.hypot(bx - ax, bz - az), n = Math.round(L / 2);
+    for (let k = 1; k < n; k++) {
+      const x = ax + ((bx - ax) * k) / n, z = az + ((bz - az) * k) / n;
+      rb.beam([x, 24.6, z], [x + nx * 1.45, 25.5, z + nz * 1.45], 0.16, 0.2, 0x4a4038);
+    }
+  }
+  flaredHip(rb, x0, x1, z0, z1, 25.6, 3.0, 1.6, SLATE3);
+  for (const [fx, fz, rot, xs] of [[x1, z1, Math.PI / 2, [3, 9, 15]], [x0, z0, -Math.PI / 2, [3, 9, 15]], [x1, z0, Math.PI, [5]], [x0, z1, 0, [5]]]) {
+    wb.at(fx, fz, rot); rb.at(fx, fz, rot);
+    for (const lx of xs) dormer(wb, rb, lx, 1.75, 3.0, 25.45, 1.6, 4.2, C, SLATE3, 'dormerWin');
+  }
+  wb.reset(); rb.reset();
+  for (const z of [946, 956]) { pb.add(cylG, M4(-161, 29.0, z, 0, 0.05, 1.4, 0.05), IRON); pb.add(ballG, M4(-161, 29.75, z, 0, 0.12, 0.12, 0.12), 0xc9a64e); }
+  // stair tower: a vertical strip of landing windows, its own kicked hipped roof (≈ 25 m)
+  const S = CTS;
+  const sy = [0, 1.2, 3.8, 6.4, 9.0, 11.6, 14.2, 16.8, 19.4, 21.6, 22.2];
+  wb.block(S.x0, S.x1, S.z0, S.z1, sy, { all: (i, j) => (j === 0 ? 'plinth' : j === 9 ? 'corniceHeavy' : 'winSmall'), s: null }, C, 4);
+  flaredHip(rb, S.x0, S.x1, S.z0, S.z1, 22.2, 2.9, 1.0, SLATE3);
+}
+
+/** Bottling hall + fire station / barrel wash: one storey with three parallel roofs that end in round-headed
+ *  gables over the east front (photo with the people, aerial postcard); the loading ramp ends the drive. */
+function expedition(wb, rb, pb) {
+  const X0 = -156, X1 = -98, Z0 = 938, Z1 = 977, C = T_EXP, H = 7.0;
+  wb.block(X0, X1, Z0, Z1, [0, 1.2, 5.2, H], {
+    all: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'win' : 'winSmall'),
+    e: (i, j) => (j === 0 ? 'plinth' : j === 1 ? (i % 2 === 0 ? 'loadDoor' : 'win') : 'winSmall'),
+    n: (i, j) => (j === 0 ? 'plinth' : j === 1 ? (i % 3 === 1 ? 'loadDoor' : 'win') : 'winSmall'),
+  }, C, 4.4);
+  wb.box(X1 - 0.3, X1 + 0.3, H - 0.4, H + 0.15, Z0 - 0.3, Z1 + 0.3, 'corniceHeavy', C);
+  pilasters(wb, X0, X1, Z0, Z1, 1.2, H, C, 0.8, 0.18);
+  for (const [za, zb] of [[938, 951], [951, 964], [964, 977]]) {
+    gableRoof(rb, null, X0, X1, za, zb, H, 3.4, 'x', 0.3, SLATE, C, 'plain', { ends: false });
+    gableCaps(rb, X0, X1, za, zb, H, 3.4, 'x', 0.3, SLATE, false);
+    archGable(wb, 'e', X1 + 0.38, (za + zb) / 2, H, zb - za + 0.4, 4.2, C, 3.0);
+    wb.poly([[X0, H, za], [X0, H, zb], [X0, H + 3.4, (za + zb) / 2]], C, 'gable');
+  }
+  // loading ramp + canopy on iron posts
+  wb.box(X1, X1 + 3.2, 0, 1.1, 939, 976, 'plinth', 0xd8d0c0);
+  rb.poly([[X1 + 3.7, 4.5, 976.5], [X1 + 3.7, 4.5, 938.5], [X1 + 0.05, 5.15, 938.5], [X1 + 0.05, 5.15, 976.5]], SLATE, null, 'world');
+  rb.beam([X1 + 3.72, 4.42, 938.5], [X1 + 3.72, 4.42, 976.5], 0.1, 0.22, FASCIA);
+  for (let z = 940; z <= 975; z += 5.6) {
+    pb.add(boxG, M4(X1 + 3.35, 2.8, z, 0, 0.14, 3.4, 0.14), 0x2c2a27);
+    pb.add(boxG, M4(X1 + 1.7, 4.55, z, 0, 3.4, 0.12, 0.1, 0, 0.17), 0x2c2a27);
+  }
+  // hanging "SVĚTOVAR" sign facing the arriving truck (z ≈ 951) + the company name band over the doors
+  const sz = 951, sy0 = 2.7, sy1 = 4.1, sw = 3.2, sx = X1 + 3.55;
+  wb.quad([sx, sy0, sz + sw], [sx, sy0, sz - sw], [sx, sy1, sz - sw], [sx, sy1, sz + sw], 0xffffff, 'svetovar');
+  wb.quad([sx - 0.1, sy0, sz - sw], [sx - 0.1, sy0, sz + sw], [sx - 0.1, sy1, sz + sw], [sx - 0.1, sy1, sz - sw], 0x777777, 'dark');
+  for (const dz of [-sw + 0.3, sw - 0.3]) pb.add(boxG, M4(sx - 0.05, (sy1 + 4.5) / 2, sz + dz, 0, 0.05, 4.5 - sy1, 0.05), 0x2c2a27);
+  wb.quad([X1 + 0.12, 5.35, 964], [X1 + 0.12, 5.35, 950], [X1 + 0.12, 6.55, 950], [X1 + 0.12, 6.55, 964], 0xffffff, 'cpp');
+}
+
+/** Administration building (1912 plan: angled along the diagonal street; photo with the people): two storeys
+ *  on a raised ground floor, high red hipped roof, a volute-gable risalit, a side gable and a balcony. */
+function adminBuilding(wb, rb, pb, ox, oz, rot) {
+  const f = { x: ox, z: oz, rot }, C = VILLA, W = 20, D = 7;
+  frame(f, 0, 0, 0, wb, rb, pb);
+  const ys = [0, 1.0, 4.8, 8.6];
+  const t = (i, j) => (j === 0 ? 'plinthWin' : j === 1 ? 'villaWin' : 'winOrn');
+  wb.block(-W, W, -D, D, ys, { all: t }, C, 3.4);
+  wb.box(-W - 0.35, W + 0.35, 8.3, 9.0, -D - 0.35, D + 0.35, 'corniceHeavy', C);
+  bands(wb, -W, W, -D, D, [4.8], C, 0.16, 0.3);
+  pilasters(wb, -W, W, -D, D, 1.0, 8.3, C, 0.9, 0.2);
+  hipRoof(rb, -W, W, -D, D, 8.9, 6.2, 0.6, RED);
+  hipCaps(rb, -W, W, -D, D, 8.9, 6.2, 0.6, RED);
+  // volute-gable risalit with the entrance
+  wb.block(2, 9, D, D + 1.2, ys, { s: (i, j) => (j === 0 ? 'plinth' : j === 1 ? (i === 1 ? 'door' : 'villaWin') : j === 2 ? 'winTriple' : t(i, j)), e: 'plain', w: 'plain', n: null }, C, 3.5);
+  wb.box(1.8, 9.2, 8.3, 9.0, D, D + 1.5, 'corniceHeavy', C);
+  addGable(wb, 5.5, 9.0, D + 1.35, 7.4, 5.8, 'volute', C, 'gable');
+  gableRoof(rb, null, 2, 9, 1, D + 1.2, 9.0, 4.6, 'z', 0.05, RED, C, 'plain', { ends: false });
+  gableCaps(rb, 2, 9, 1, D + 1.2, 9.0, 4.6, 'z', 0.05, RED, false);
+  pb.add(ballG, M4(5.5, 15.1, D + 1.35, 0, 0.2, 0.2, 0.2), 0xc9a64e);
+  // side gable (triangular) at the south-west end
+  wb.block(12, 19, D, D + 0.8, ys, { s: t, e: 'plain', w: 'plain', n: null }, C, 3.5);
+  addGable(wb, 15.5, 9.0, D + 0.95, 7.6, 5.0, 'triangle', C, 'gable');
+  gableRoof(rb, null, 12, 19, 1, D + 0.8, 9.0, 4.6, 'z', 0.05, RED, C, 'plain', { ends: false });
+  gableCaps(rb, 12, 19, 1, D + 0.8, 9.0, 4.6, 'z', 0.05, RED, false);
+  // balcony on the north-east end
+  wb.box(-19.2, -9.8, 4.6, 4.9, D, D + 1.4, 'stone', 0xd8d0c0);
+  for (let x = -19; x <= -10; x += 0.55) pb.add(boxG, M4(x, 5.35, D + 1.3, 0, 0.06, 0.9, 0.06), 0x34312c);
+  pb.add(boxG, M4(-14.5, 5.8, D + 1.3, 0, 9.4, 0.07, 0.07), 0x34312c);
+  for (const [x, z] of [[-14, -2], [-4, 2], [8, -2], [16, 2]]) chimney(wb, x, z, 13.2, 4.4);
+  wb.reset(); rb.reset(); pb.reset();
+  // dormers: front slope (local +z) and back slope (frame turned by π)
+  const sl = 6.2 / (D + 0.6), yW = 8.9 + 0.6 * sl, yb = yW + 1.3 * sl - 0.08, dep = (1.5 + 1.4 * 0.45 + 0.35) / sl;
+  frame(f, 0, 0, 0, wb, rb);
+  for (const x of [-15, -8.5, -2]) dormer(wb, rb, x, D - 1.3, 1.4, yb, 1.5, dep, C, RED, 'dormerWin');
+  frame(f, 0, 0, Math.PI, wb, rb);
+  for (const x of [-12, 0, 12]) dormer(wb, rb, x, D - 1.3, 1.4, yb, 1.5, dep, C, RED, 'dormerWin');
+  wb.reset(); rb.reset();
+}
+
+function smallVilla(wb, rb, ox, oz, rot) {
+  const f = { x: ox, z: oz, rot }, C = 0xe9dcc0, W = 11, D = 6;
+  frame(f, 0, 0, 0, wb, rb);
+  const ys = [0, 0.9, 4.6, 8.2];
+  const t = (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'winShutter' : 'win');
+  wb.block(-W, W, -D, D, ys, { all: t, s: (i, j) => (j === 1 && i === 3 ? 'door' : t(i, j)) }, C, 3.6);
+  wb.box(-W - 0.3, W + 0.3, 7.8, 8.4, -D - 0.3, D + 0.3, 'corniceHeavy', C);
+  pilasters(wb, -W, W, -D, D, 0.9, 7.8, C, 0.7, 0.15);
+  hipRoof(rb, -W, W, -D, D, 8.3, 5.6, 0.6, RED2);
+  hipCaps(rb, -W, W, -D, D, 8.3, 5.6, 0.6, RED2);
+  addGable(wb, 6, 8.3, D + 0.25, 7, 5.6, 'triangle', C, 'gable');
+  gableRoof(rb, null, 2.5, 9.5, 0, D + 0.25, 8.3, 5.2, 'z', 0.05, RED2, C, 'plain', { ends: false });
+  gableCaps(rb, 2.5, 9.5, 0, D + 0.25, 8.3, 5.2, 'z', 0.05, RED2, false);
+  chimney(wb, -4, -1, 11, 4.4); chimney(wb, 5, 1, 10.5, 4.4);
+  wb.reset(); rb.reset();
+}
+
+// ---------------------------------------------------------------------------------------------
+// Railway: the upper track (continues east to the level crossing on the field road) curves south near the
+// west fence into the yard tracks; buffer stops in the yard at x ≈ -45 and at the west end.
 function buildTrack(pb, RZ) {
   const BALLAST = 0x8b8273, SLEEPER = 0x4f3f31, RAIL = 0x45423e;
-  const SIDING_Z = RZ + 5;
-  const xs = -6, xe = -233;
-  // main line ballast + rails + sleepers
   const seg = (x0, z0, x1, z1) => {
     const len = Math.hypot(x1 - x0, z1 - z0), yaw = Math.atan2(z1 - z0, x0 - x1); // along -X
     const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
     const nx = -(z1 - z0) / len, nz = (x1 - x0) / len; // perpendicular
     pb.add(boxG, M4(mx, 0.05, mz, yaw, len + 0.05, 0.1, 3.0), BALLAST);
     for (const g of [-0.72, 0.72]) pb.add(boxG, M4(mx + nx * g, 0.16, mz + nz * g, yaw, len + 0.02, 0.12, 0.08), RAIL); // rail top 0.22 = city.js RAIL_Y
-    return len;
   };
-  const sleepers = (pts) => {
+  const line = (pts) => {
+    for (let i = 1; i < pts.length; i++) seg(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]);
     let acc = 0;
     for (let i = 1; i < pts.length; i++) {
       const [x0, z0] = pts[i - 1], [x1, z1] = pts[i];
@@ -508,119 +789,30 @@ function buildTrack(pb, RZ) {
       acc = (acc + len) % 0.75;
     }
   };
-  seg(xs, RZ, xe, RZ);
-  sleepers([[xs, RZ], [xe, RZ]]);
-  // siding: leaves the main line at x≈-100, curves to z = RZ+5 by x≈-136
-  const pts = [];
-  for (let x = -100; x >= -136; x -= 3) { const t = (-100 - x) / 36; const s = t * t * (3 - 2 * t); pts.push([x, RZ + 5 * s]); }
-  pts.push([xe, SIDING_Z]);
-  for (let i = 1; i < pts.length; i++) seg(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]);
-  sleepers(pts);
-  // buffer stops
-  for (const z of [RZ, SIDING_Z]) {
-    pb.add(boxG, M4(xe - 0.4, 0.75, z, 0, 0.6, 1.5, 2.6), 0x5b4a3a);
-    pb.add(boxG, M4(xe + 0.05, 1.05, z, 0, 0.1, 0.5, 2.0), 0xd8d0c0);
-    pb.add(boxG, M4(xe + 0.08, 1.05, z, 0, 0.1, 0.5, 0.6), 0xa53a2e);
-  }
-  // loading platform along the siding (south side)
-  pb.add(boxG, M4(-185, 0.5, SIDING_Z + 3.6, 0, 90, 1.0, 3.2), 0xa49a8a);
-  return { sidingZ: SIDING_Z };
+  const curve = (xa, za, xb, zb, n) => {
+    const p = [];
+    for (let k = 1; k <= n; k++) { const t = k / n, s = t * t * (3 - 2 * t); p.push([xa + (xb - xa) * t, za + (zb - za) * s]); }
+    return p;
+  };
+  const XW = -276; // west buffer stop (inside the west fence)
+  line([[-6, RZ], [-175, RZ], ...curve(-175, RZ, -262, L1Z, 16)]);
+  line([[-44, L1Z], [XW, L1Z]]);
+  line([[-46, L2Z], [-205, L2Z], ...curve(-205, L2Z, -240, L1Z, 8)]);
+  bufferStop(pb, -44, L1Z, 1); bufferStop(pb, -46, L2Z, 1); bufferStop(pb, XW, L1Z, -1);
+  // loading platform along the south side of the second yard track
+  pb.add(boxG, M4(-90, 0.5, L2Z + 4.4, 0, 60, 1.0, 3.6), 0xa49a8a);
+  pb.add(boxG, M4(-90, 1.02, L2Z + 2.66, 0, 60, 0.06, 0.14), 0xd8d0c0);
+  // wagons: a long rake on the second track (wagon photo), a shorter one in front of the brewhouse
+  const wagons = [];
+  for (let i = 0; i < 7; i++) wagons.push({ x: -53 - i * 9.95, z: L2Z, flip: i === 3 });
+  for (let i = 0; i < 5; i++) wagons.push({ x: -122 - i * 9.95, z: L1Z, flip: i === 2 });
+  return wagons;
 }
-
-// ---------------------------------------------------------------------------------------------
-function stacheni(wb, rb, pb) {
-  // local frame: facade at x = -100 facing east (+X); local x runs south→north (z 972 → 936)
-  const OX = -100, OZ = 972, W = 36, D = 40, C = T_EXP;
-  wb.at(OX, OZ, Math.PI / 2); rb.at(OX, OZ, Math.PI / 2); pb.at(OX, OZ, Math.PI / 2);
-  const ys = [0, 1.2, 5.2, 8.8];
-  wb.wall(0, 0, W, 0, ys, 10, (i, j) => (j === 0 ? 'plinth' : j === 1 ? (i % 2 === 0 ? 'loadDoor' : 'win') : 'winSmall'), C);
-  wb.wall(W, 0, W, -D, ys, 10, (i, j) => (j === 0 ? 'plinth' : 'win'), C);
-  wb.wall(0, -D, 0, 0, ys, 10, (i, j) => (j === 0 ? 'plinth' : 'win'), C);
-  wb.wall(W, -D, 0, -D, [0, 8.8], 4, 'plain', C);
-  wb.box(-0.3, W + 0.3, 8.4, 9.1, -0.3, 0.45, 'corniceHeavy', C, { sides: 'sew' });
-  pilasters(wb, 0, W, -D, 0, 1.2, 8.4, C, 0.8, 0.18);
-  gableRoof(rb, wb, 0, W, -D, 0, 9.0, 6, 'x', 0.4, SLATE, C, 'gable');
-  gableCaps(rb, 0, W, -D, 0, 9.0, 6, 'x', 0.4, SLATE);
-  addGable(wb, W / 2, 9.0, 0.2, 13, 6.8, 'volute', C, 'gable');
-  pb.add(ballG, M4(W / 2, 16.2, 0.1, 0, 0.22, 0.22, 0.22), 0xc9a64e);
-  // loading ramp + canopy
-  wb.box(1, W - 1, 0, 1.1, 0, 3.2, 'plinth', 0xd8d0c0);
-  rb.poly([[0.5, 4.5, 3.7], [W - 0.5, 4.5, 3.7], [W - 0.5, 5.15, 0.05], [0.5, 5.15, 0.05]], SLATE, null, 'world');
-  rb.beam([0.5, 4.42, 3.72], [W - 0.5, 4.42, 3.72], 0.1, 0.22, FASCIA);
-  for (let x = 2; x <= W - 2; x += 5.6) {
-    pb.add(boxG, M4(x, 2.8, 3.35, 0, 0.14, 3.4, 0.14), 0x2c2a27);
-    pb.add(boxG, M4(x, 4.55, 1.7, 0, 0.1, 0.12, 3.4, 0.17), 0x2c2a27);
-  }
-  // hanging "SVĚTOVAR" sign facing the arriving truck (z ≈ 951 => local x = 21)
-  const sx = OZ - 951, sy0 = 2.7, sy1 = 4.1, sw = 3.2;
-  wb.quad([sx - sw, sy0, 3.55], [sx + sw, sy0, 3.55], [sx + sw, sy1, 3.55], [sx - sw, sy1, 3.55], 0xffffff, 'svetovar');
-  wb.quad([sx + sw, sy0, 3.45], [sx - sw, sy0, 3.45], [sx - sw, sy1, 3.45], [sx + sw, sy1, 3.45], 0x777777, 'dark');
-  for (const dx of [-sw + 0.3, sw - 0.3]) pb.add(boxG, M4(sx + dx, (sy1 + 4.5) / 2, 3.5, 0, 0.05, 4.5 - sy1, 0.05), 0x2c2a27);
-  // name band over the doors
-  wb.quad([W / 2 - 7, 5.4, 0.12], [W / 2 + 7, 5.4, 0.12], [W / 2 + 7, 6.6, 0.12], [W / 2 - 7, 6.6, 0.12], 0xffffff, 'cpp');
-  wb.reset(); rb.reset(); pb.reset();
-}
-
-function adminVilla(wb, rb, pb, ox, oz) {
-  // local frame: facade at x = ox facing east, local x runs from z = oz northwards (decreasing z)
-  const W = 30, D = 20, C = VILLA;
-  wb.at(ox, oz, Math.PI / 2); rb.at(ox, oz, Math.PI / 2); pb.at(ox, oz, Math.PI / 2);
-  const ys = [0, 1.0, 4.8, 8.4, 11.6];
-  const t = (i, j) => (j === 0 ? 'plinthWin' : j === 1 ? 'rustic' : j === 2 ? 'villaWin' : 'winOrn');
-  wb.wall(0, 0, W, 0, ys, 9, t, C);
-  wb.wall(W, 0, W, -D, ys, 6, t, C);
-  wb.wall(0, -D, 0, 0, ys, 6, t, C);
-  wb.wall(W, -D, 0, -D, ys, 9, t, C);
-  wb.box(-0.35, W + 0.35, 11.2, 11.9, -D - 0.35, 0.5, 'corniceHeavy', C, { sides: 'nsew' });
-  bands(wb, 0, W, -D, 0, [4.8], C, 0.16, 0.3);
-  pilasters(wb, 0, W, -D, 0, 1.0, 11.2, C, 0.9, 0.2);
-  hipRoof(rb, 0, W, -D, 0, 11.8, 7, 0.6, RED);
-  hipCaps(rb, 0, W, -D, 0, 11.8, 7, 0.6, RED);
-  // central risalit with a baroque gable + balcony
-  wb.block(10, 20, 0, 1.4, ys, { s: (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'door' : j === 2 ? 'winTriple' : t(i, j)), e: 'plain', w: 'plain', n: null }, C, 3.4);
-  wb.box(9.8, 20.2, 11.2, 11.9, 0, 1.8, 'corniceHeavy', C);
-  pilasters(wb, 10, 20, 0.2, 1.4, 1.0, 11.2, C, 0.7, 0.15);
-  addGable(wb, 15, 11.9, 1.55, 10.4, 7.2, 'volute', C, 'gable');
-  gableRoof(rb, null, 10, 20, -6, 1.4, 11.9, 6.4, 'z', 0.05, RED, C, 'plain', { ends: false });
-  gableCaps(rb, 10, 20, -6, 1.4, 11.9, 6.4, 'z', 0.05, RED, false);
-  wb.box(11.5, 18.5, 4.6, 4.9, 1.4, 2.6, 'stone', 0xd8d0c0);
-  for (let x = 11.7; x <= 18.4; x += 0.55) pb.add(boxG, M4(x, 5.35, 2.5, 0, 0.06, 0.9, 0.06), 0x34312c); // balcony railing
-  pb.add(boxG, M4(15, 5.8, 2.5, 0, 7.0, 0.07, 0.07), 0x34312c);
-  pb.add(ballG, M4(15, 19.6, 1.55, 0, 0.2, 0.2, 0.2), 0xc9a64e);
-  // side gable (south end)
-  addGable(wb, 4.5, 11.9, 0.3, 7, 5.2, 'triangle', C, 'gable');
-  gableRoof(rb, null, 1, 8, -6, 0.3, 11.9, 4.8, 'z', 0.05, RED, C, 'plain', { ends: false });
-  gableCaps(rb, 1, 8, -6, 0.3, 11.9, 4.8, 'z', 0.05, RED, false);
-  for (const [x, z] of [[3, -10], [12, -14], [22, -6], [27, -12]]) chimney(wb, x, z, 14, 5.8);
-  // finials at the ridge ends
-  for (const x of [10, 20]) pb.add(cylG, M4(x, 19.6, -10, 0, 0.05, 1.6, 0.05), 0x34312c);
-  wb.reset(); rb.reset(); pb.reset();
-  // dormers (world-space footprint x -34..-14, z 974..1004; hip slope 7 / 10.6)
-  const fp = { x0: ox - D, x1: ox, z0: oz - W, z1: oz }, yW = 11.8 + 0.6 * 0.66, o = { wallCol: C, roofCol: RED, w: 1.4, hw: 1.5, d0: 1.3, tile: 'dormerWin' };
-  dormerRow(wb, rb, fp, 'e', yW, 0.66, [23], o);
-  dormerRow(wb, rb, fp, 'w', yW, 0.66, [9, 15, 21], o);
-  dormerRow(wb, rb, fp, 'n', yW, 0.66, [10], o);
-}
-
-function smallVilla(wb, rb, ox, oz) {
-  const W = 22, D = 14, C = 0xe9dcc0;
-  wb.at(ox, oz, Math.PI / 2); rb.at(ox, oz, Math.PI / 2);
-  const ys = [0, 0.9, 4.6, 8.2];
-  const t = (i, j) => (j === 0 ? 'plinth' : j === 1 ? 'winShutter' : 'win');
-  wb.wall(0, 0, W, 0, ys, 6, (i, j) => (j === 1 && i === 2 ? 'door' : t(i, j)), C);
-  wb.wall(W, 0, W, -D, ys, 4, t, C);
-  wb.wall(0, -D, 0, 0, ys, 4, t, C);
-  wb.wall(W, -D, 0, -D, ys, 6, t, C);
-  wb.box(-0.3, W + 0.3, 7.8, 8.4, -D - 0.3, 0.4, 'corniceHeavy', C, { sides: 'nsew' });
-  pilasters(wb, 0, W, -D, 0, 0.9, 7.8, C, 0.7, 0.15);
-  hipRoof(rb, 0, W, -D, 0, 8.3, 6.4, 0.6, RED2);
-  hipCaps(rb, 0, W, -D, 0, 8.3, 6.4, 0.6, RED2);
-  addGable(wb, 8, 8.3, 0.25, 8, 6.4, 'triangle', C, 'gable');
-  gableRoof(rb, null, 4, 12, -6, 0.25, 8.3, 5.6, 'z', 0.05, RED2, C, 'plain', { ends: false });
-  gableCaps(rb, 4, 12, -6, 0.25, 8.3, 5.6, 'z', 0.05, RED2, false);
-  chimney(wb, 15, -7, 11, 5); chimney(wb, 5, -9, 10, 5);
-  wb.reset(); rb.reset();
-  dormerRow(wb, rb, { x0: ox - D, x1: ox, z0: oz - W, z1: oz }, 'e', 8.3 + 0.6 * 0.84, 0.84, [17], { wallCol: C, roofCol: RED2, w: 1.3, hw: 1.3, d0: 1.0 });
+/** Buffer stop at the track end x; dir = +1: the wagons arrive from the west (stop faces -X), -1: from the east. */
+function bufferStop(pb, x, z, dir) {
+  pb.add(boxG, M4(x + dir * 0.4, 0.75, z, 0, 0.6, 1.5, 2.6), 0x5b4a3a);
+  pb.add(boxG, M4(x - dir * 0.05, 1.05, z, 0, 0.1, 0.5, 2.0), 0xd8d0c0);
+  pb.add(boxG, M4(x - dir * 0.08, 1.05, z, 0, 0.1, 0.5, 0.6), 0xa53a2e);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -668,7 +860,7 @@ function buildFence(wb, kit, lines) {
 // Main gate, built square to the road where it crosses the fence line so that the name board faces the
 // arriving truck. Local frame: x = lateral (route right), +z = toward the arriving truck.
 function gateway(wb, pb, route, gate) {
-  const IRON = 0x2a2927, ST = 0xe6dccb;
+  const ST = 0xe6dccb;
   const f = route.frameAt(gate.s);
   const P = route.halfWidthAt(gate.s) + 2.8;
   const rot = Math.atan2(-f.tx, -f.tz);
@@ -678,23 +870,22 @@ function gateway(wb, pb, route, gate) {
     wb.block(x - 0.95, x + 0.95, -0.95, 0.95, [0.7, 2.8, 4.9, 5.6], { all: (i, j) => (j === 2 ? 'cornice' : 'stone') }, ST, 1.9);
     wb.box(x - 1.25, x + 1.25, 5.6, 6.1, -1.25, 1.25, 'stone', 0xd8cebd);
     wb.cone(x, 0, 6.1, 0.9, 1.45, 4, 0xcfc5b2, 'stone', Math.PI / 4);
-    pb.add(cylG, M4(x, 7.25, 0, 0, 0.08, 0.6, 0.08), IRON);
+    pb.add(cylG, M4(x, 7.25, 0, 0, 0.08, 0.6, 0.08), 0x2a2927);
     pb.add(lanternG, M4(x, 7.85, 0), 0xf3e2b0);
-    pb.add(lanternCapG, M4(x, 8.4, 0), IRON);
-    // short wing wall toward the fence
+    pb.add(lanternCapG, M4(x, 8.4, 0), 0x2a2927);
   };
   pillar(-P); pillar(P);
   // iron arch: two curved chords with a lattice between them, carrying the name board
   const yAt = (x, top) => 6.0 + top * (1 - (x / P) ** 2);
-  const N = 18;
+  const N = 18, GI = 0x2a2927;
   for (let i = 0; i < N; i++) {
     const xa = -P + (2 * P * i) / N, xb = -P + (2 * P * (i + 1)) / N;
     for (const [top, off] of [[3.8, 0], [3.2, -0.55]]) {
       const ya = yAt(xa, top) + off, yb = yAt(xb, top) + off;
-      pb.add(boxG, M4((xa + xb) / 2, (ya + yb) / 2, 0, 0, Math.hypot(xb - xa, yb - ya) + 0.02, 0.12, 0.12, 0, Math.atan2(yb - ya, xb - xa)), IRON);
+      pb.add(boxG, M4((xa + xb) / 2, (ya + yb) / 2, 0, 0, Math.hypot(xb - xa, yb - ya) + 0.02, 0.12, 0.12, 0, Math.atan2(yb - ya, xb - xa)), GI);
     }
     const xc = (xa + xb) / 2, y1 = yAt(xc, 3.8), y0 = yAt(xc, 3.2) - 0.55;
-    pb.add(boxG, M4(xc, (y0 + y1) / 2, 0, 0, 0.06, y1 - y0, 0.06, 0, i % 2 ? 0.5 : -0.5), IRON);
+    pb.add(boxG, M4(xc, (y0 + y1) / 2, 0, 0, 0.06, y1 - y0, 0.06, 0, i % 2 ? 0.5 : -0.5), GI);
   }
   // name board (text faces the arriving truck)
   const bw = 7.6, by0 = 8.0, by1 = 9.75;
@@ -728,25 +919,25 @@ function finishMarks(pb, fin) {
 }
 
 function rampBarrels(list) {
-  // on the loading ramp (top y = 1.1) at x ≈ -98.4, lying barrels across the ramp
-  const groups = [[937.5, 945.5], [957.5, 969.5]];
+  // on the loading ramp (top y = 1.1) along the expedition front, lying barrels across the ramp
+  const groups = [[939.8, 946.8], [957.5, 969.5]];
   for (const [z0, z1] of groups) {
     for (let layer = 0; layer < 3; layer++) {
       for (let z = z0 + layer * 0.35; z <= z1 - layer * 0.35 + 0.01; z += 0.7) {
-        list.push({ x: -98.6, y: 1.1 + 0.33 + layer * 0.58, z, lie: true, yaw: Math.PI / 2 });
+        list.push({ x: -96.6, y: 1.1 + 0.33 + layer * 0.58, z, lie: true, yaw: Math.PI / 2 });
       }
     }
   }
   // a few standing ones at the ramp edge
-  for (const z of [947, 947.8, 956.2]) list.push({ x: -97.6, y: 1.1 + 0.4, z, lie: false, yaw: 0 });
+  for (const z of [948, 948.8, 956.2]) list.push({ x: -95.6, y: 1.1 + 0.4, z, lie: false, yaw: 0 });
 }
 
-function barrelPile(list, x, z, n, yaw) {
+function barrelPile(list, x, z, n, yaw, y0 = 0) {
   const ax = Math.cos(yaw), az = -Math.sin(yaw);
   for (let layer = 0; layer < 3 && n - layer > 0; layer++) {
     for (let k = 0; k < n - layer; k++) {
       const o = (k - (n - layer - 1) / 2) * 0.7;
-      list.push({ x: x + ax * o, y: 0.33 + layer * 0.58, z: z + az * o, lie: true, yaw });
+      list.push({ x: x + ax * o, y: y0 + 0.33 + layer * 0.58, z: z + az * o, lie: true, yaw });
     }
   }
 }
@@ -776,8 +967,8 @@ function handCart(pb, x, z, yaw) {
 const wheelG = new THREE.CylinderGeometry(0.62, 0.62, 0.08, 12);
 
 // ---------------------------------------------------------------------------------------------
-// Box wagons "PLZEŇSKÝ SVĚTOVAR" (photo 16) — one InstancedMesh
-function wagonMesh(kit, z) {
+// Box wagons "PLZEŇSKÝ SVĚTOVAR" (wagon photo) — one InstancedMesh; list = [{ x, z, flip }]
+function wagonMesh(kit, list) {
   const b = new Builder(kit);
   const L = 4.3, Wd = 1.4, y0 = 1.25, y1 = 3.55, D = 0x3a3632;
   b.quad([-L, y0, Wd], [L, y0, Wd], [L, y1, Wd], [-L, y1, Wd], 0xffffff, 'wagon');
@@ -788,7 +979,7 @@ function wagonMesh(kit, z) {
   const rp = [[-Wd - 0.1, y1], [-Wd * 0.45, y1 + 0.38], [Wd * 0.45, y1 + 0.38], [Wd + 0.1, y1]];
   for (let i = 0; i < 3; i++) {
     const [za, ya] = rp[i], [zb, yb] = rp[i + 1];
-    b.quad([L + 0.15, ya, zb === za ? za : za], [-L - 0.15, ya, za], [-L - 0.15, yb, zb], [L + 0.15, yb, zb], 0x8a8682, 'dark');
+    b.quad([L + 0.15, ya, za], [-L - 0.15, ya, za], [-L - 0.15, yb, zb], [L + 0.15, yb, zb], 0x8a8682, 'dark');
   }
   b.poly([[L + 0.15, y1, Wd + 0.1], [L + 0.15, y1, -Wd - 0.1], [L + 0.15, y1 + 0.38, -Wd * 0.45], [L + 0.15, y1 + 0.38, Wd * 0.45]], 0x8a8682, 'dark');
   b.poly([[-L - 0.15, y1, -Wd - 0.1], [-L - 0.15, y1, Wd + 0.1], [-L - 0.15, y1 + 0.38, Wd * 0.45], [-L - 0.15, y1 + 0.38, -Wd * 0.45]], 0x8a8682, 'dark');
@@ -804,11 +995,9 @@ function wagonMesh(kit, z) {
   // brake hut on one end
   b.box(L - 0.9, L + 0.05, y1, y1 + 0.9, -0.6, 0.6, 'wagonEnd', 0xffffff);
   const geo = b.geometry();
-  const xs = [];
-  for (let i = 0; i < 7; i++) xs.push(-142 - i * 9.95);
-  const inst = new THREE.InstancedMesh(geo, kit.mats.wall, xs.length);
+  const inst = new THREE.InstancedMesh(geo, kit.mats.wall, list.length);
   const m = new THREE.Matrix4();
-  xs.forEach((x, i) => { m.makeRotationY(i === 3 ? Math.PI : 0).setPosition(x, -0.14, z); inst.setMatrixAt(i, m); }); // wheels sit on rail top 0.22
+  list.forEach((w, i) => { m.makeRotationY(w.flip ? Math.PI : 0).setPosition(w.x, -0.14, w.z); inst.setMatrixAt(i, m); }); // wheels sit on rail top 0.22
   inst.castShadow = true; inst.receiveShadow = true; inst.name = 'svetovar-wagons';
   inst.computeBoundingSphere();
   return inst;

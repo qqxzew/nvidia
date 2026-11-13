@@ -117,12 +117,13 @@ if (ORBIT) {
   const focus = {
     truck: [0, 1.5, 0, 6, 4, 8],
     square: [a.square.cathedral.x, 10, a.square.cathedral.z, 90, 60, 90],
-    svetovar: [-110, 15, 960, 80, 60, -60],
+    svetovar: [-120, 15, 930, 110, 70, 90],
     city: null,
   }[VIEW];
   if (focus) { orbit.target.set(focus[0], focus[1], focus[2]); camera.position.set(focus[0] + focus[3], focus[1] + focus[4], focus[2] + focus[5]); }
   else { const f = route.frameAt(START_S); orbit.target.set(f.x, 2, f.z); camera.position.set(f.x + 25, 20, f.z - 25); }
   orbit.update();
+  ctx.orbit = orbit; // debug: window.__game.orbit (set target + camera.position from the console)
 }
 
 // --- game state machine ---------------------------------------------------------------------------

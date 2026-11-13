@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // A small flock of swifts circling the brewery chimney — only shown in the main menu film.
 // One InstancedMesh; wing beat = scaling the V shape, each bird with its own phase.
-const CHIMNEY = new THREE.Vector3(-42, 0, 888);
+const CHIMNEY = new THREE.Vector3(-76, 0, 879.5); // = svetovar.js CH (48 m)
 
 export function createBirds(ctx) {
   const COUNT = 11;
@@ -22,8 +22,8 @@ export function createBirds(ctx) {
   ctx.scene.add(mesh);
 
   const birds = Array.from({ length: COUNT }, (_, i) => ({
-    r: 16 + Math.random() * 26,
-    h: 44 + Math.random() * 22,
+    r: 14 + Math.random() * 24,
+    h: 34 + Math.random() * 20,
     speed: (0.16 + Math.random() * 0.12) * (i % 4 === 0 ? -1 : 1),
     a: Math.random() * Math.PI * 2,
     flap: 7 + Math.random() * 4,

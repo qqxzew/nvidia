@@ -157,15 +157,17 @@ export function createRoute() {
     square: { minX: -80, maxX: 44, minZ: -64, maxZ: 52, cathedral: { x: -18, z: -4, yaw: Math.PI / 2 } },
     // The exit street leaves the square's south edge here.
     squareExit: { x: 27, z: 52, width: 18 },
-    // Railway line along constant Z, crossing the field road and running west into the brewery.
-    rail: { z: 880, fromX: 320, toX: -230 },
-    railCrossing: { s: project(6, 880).s, x: 6, z: 880 },
-    // Brewery perimeter fence runs along X = fenceX next to the field road (right-hand side) …
-    fence: { x: -6, fromZ: 760, toZ: 1090 },
+    // Railway line along constant Z, crossing the field road and running west into the brewery
+    // (the upper track of the 1912 plan, north of the brewhouse row).
+    rail: { z: 870, fromX: 320, toX: -276 },
+    railCrossing: { s: project(6, 870).s, x: 6, z: 870 },
+    // Brewery perimeter fence runs along X = fenceX next to the field road (right-hand side) from the NE
+    // corner to the SE corner, where the diagonal street of the 1912 plan begins …
+    fence: { x: -6, fromZ: 790, toZ: 973.4 },
     // … with the main gate where the route crosses it.
     gate: (() => { const p = project(-6, 941); const f = frameAt(p.s); return { s: p.s, x: f.x, z: f.z, yaw: f.yaw }; })(),
-    // Světovar complex footprint (west of the fence).
-    brewery: { minX: -235, maxX: -14, minZ: 850, maxZ: 1090 },
+    // Světovar complex footprint (west of the fence; the south-east corner is cut by the diagonal street).
+    brewery: { minX: -284, maxX: -6, minZ: 790, maxZ: 1062 },
     finish: { s: length - 6, x: frameAt(length - 6).x, z: frameAt(length - 6).z, yaw: endFrame.yaw, radius: 7 },
   };
 
