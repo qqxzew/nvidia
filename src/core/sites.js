@@ -107,7 +107,7 @@ export const LEVEL4_ROUTE = {
   ],
   // named stretches, given by the world point where each one begins (projected onto the path)
   sections: [
-    { id: 'varna', at: [-143.2, 897.4], name: 'Varna – galerie nad pánvemi' },
+    { id: 'varna', at: [-143.2, 897.4], name: 'Varna, galerie nad pánvemi' },
     { id: 'tower', at: [-153.6, 912.6], name: 'Hodinová věž' },
     { id: 'bridge', at: [-159.0, 915.6], name: 'Krytý most nad vlečkou' },
     { id: 'cellarTower', at: [-159.0, 936.4], name: 'Věž sklepů' },

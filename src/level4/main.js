@@ -16,7 +16,7 @@ const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
 const quality = params.get('q') || (isMobile ? 'low' : 'high');
 const MAX_PR = 1.5, MIN_PR = 0.85;
 
-document.title = 'Plzeň 1926 – Varna';
+document.title = 'Plzeň 1926 · Varna';
 
 // modules from the other owners are loaded defensively so one broken part never blanks the level
 async function load(importer, name) {

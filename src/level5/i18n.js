@@ -10,12 +10,12 @@ const STRINGS = {
     goal: 'Stočte {n} pro Plzeň',
     intro: 'Sudy jezdí po pásu dokola. Výhybkami je posílejte do strojů v tomhle pořadí:',
     rule: 'Pošlete sud jen tam, kam ukazuje jeho barevný štítek.',
-    con_wash: 'Plný do myčky – pivo se vylije',
+    con_wash: 'Plný do myčky: pivo se vylije',
     con_fill: 'Neumytý pod plničkou praskne',
-    con_cap: 'Prázdný pod naražečem – chyba',
+    con_cap: 'Prázdný pod naražečem: chyba',
     con_ship: 'Na expedici jen zatlučené',
     hintTouch: 'Ťukněte na výhybku na pásu (barevný terč s číslem). Zapnutá výhybka sud odbočí, vypnutá ho pustí rovně.',
-    hintKeys: 'Klávesy 1 – 4 nebo klik na výhybku – přepnout  ·  zapnutá odbočí, vypnutá pustí rovně  ·  P – pauza',
+    hintKeys: 'Klávesy 1 až 4 nebo klik na výhybku: přepnout  ·  zapnutá odbočí, vypnutá pustí rovně  ·  P: pauza',
     start: 'Spustit linku',
 
     // countdown
@@ -31,7 +31,7 @@ const STRINGS = {
     pause: 'Pauza',
     swOn: 'odbočit',
     swOff: 'rovně',
-    swAria: 'Výhybka {n} – {name}',
+    swAria: 'Výhybka {n}: {name}',
     coach: 'Štítek nad sudem ukazuje, kam má jet. Včas mu přepněte výhybku.',
 
     // toasts / banners
@@ -43,7 +43,7 @@ const STRINGS = {
     toastCapEmptySub: 'nejdřív ho naplňte',
     toastSpill: 'Pivo vypláchnuto!',
     toastSpillSub: 'sud musí znovu do plničky',
-    liftWarn: 'Výtah se plní {q}/{m} – posílejte sudy dál!',
+    liftWarn: 'Výtah se plní {q}/{m}: posílejte sudy dál!',
     need_wash: 'ještě není umytý',
     need_fill: 'ještě není naplněný',
     need_cap: 'ještě není zatlučený',

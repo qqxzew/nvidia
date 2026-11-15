@@ -24,7 +24,7 @@ const quality = params.get('q') || (isMobile ? 'low' : 'high');
 const god = !!params.get('god');
 const C = CONFIG3;
 
-document.title = `${t('g3subtitle').split('·')[0].trim()} – ${t('g3title')}`;
+document.title = `${t('g3subtitle').split('·')[0].trim()} · ${t('g3title')}`;
 
 // --- renderer --------------------------------------------------------------------------------
 const app = document.getElementById('app');

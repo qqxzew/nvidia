@@ -18,6 +18,22 @@ const FLAGS = {
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 const STAR = '<svg viewBox="0 0 48 46" aria-hidden="true"><path d="M24 3l5.8 13.3 14.4 1.3-10.9 9.5 3.2 14.1L24 33.8 11.5 41.2l3.2-14.1L3.8 17.6l14.4-1.3z"/></svg>';
 
+// The team (photos: public/team/*.png, transparent rounded corners). `links` are shown under the role.
+const TEAM = [
+  { name: 'Tomáš Krůta', photo: 'tomas-kruta.png', role: 'teamRole1', links: [{ label: 'tomaskruta.dev', url: 'https://tomaskruta.dev' }] },
+  { name: 'Andrii Fedorov', photo: 'andrii-fedorov.png', role: 'teamRole2', links: [{ label: 'LinkedIn', url: 'https://www.linkedin.com/in/fedorov-andrii' }] },
+  { name: 'Oleksii Logosha', photo: 'oleksii-logosha.png', role: 'teamRole3', links: [] },
+  { name: 'Adam Hojer', photo: 'adam-hojer.png', role: 'teamRole4', links: [
+    { label: 'adamhojer.cz', url: 'https://adamhojer.cz' },
+    { label: 'LinkedIn', url: 'https://www.linkedin.com/in/adam-hojer/' },
+  ] },
+];
+const memberHtml = (m) => `<li class="tt-member">
+  <img src="${import.meta.env.BASE_URL}team/${m.photo}" alt="${m.name}" loading="lazy" decoding="async" draggable="false">
+  <b>${m.name}</b><span class="role">${t(m.role)}</span>
+  ${m.links.length ? `<span class="links">${m.links.map((l) => `<a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>`).join('')}</span>` : ''}
+</li>`;
+
 export function createTitle(ctx) {
   const { events } = ctx;
   const host = document.getElementById('ui') || document.body;
@@ -56,7 +72,10 @@ export function createTitle(ctx) {
         <div class="tt-panel">
           <div class="tt-head">${t('about')}</div>
           <p class="tt-text">${t('aboutText')}</p>
-          <p class="tt-note">${t('aboutMeta')}</p>
+          <p class="tt-made">${t('aboutMeta')}</p>
+          <div class="tt-head tt-team-head">${t('teamTitle')}</div>
+          <ul class="tt-team">${TEAM.map(memberHtml).join('')}</ul>
+          <img class="tt-group" src="${import.meta.env.BASE_URL}team/group.png" alt="" draggable="false">
         </div>
         <button class="tt-back" type="button">${t('back')}</button>
       </div>
@@ -82,6 +101,7 @@ export function createTitle(ctx) {
   function show(name) {
     for (const k in views) views[k].classList.toggle('on', k === name);
     root.classList.toggle('sub', name !== 'main');
+    root.classList.toggle('about', name === 'about'); // the About card is wider: it holds the team
     // Levels view = the 3D map of the site: the camera leaves the film and flies over the brewery
     if (name === 'levels') map.open(); else map.close();
   }

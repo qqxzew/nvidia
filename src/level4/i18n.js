@@ -14,8 +14,8 @@ const STRINGS = {
     hz_jumpDo: 'skočte',
     hz_sack: 'Padající pytle',
     hz_sackDo: 'uhněte nebo přeskočte',
-    hintTouch: 'Tlačítka ◀ ▶ – uhnout  ·  červené tlačítko – skok  ·  nebo švihněte prstem doleva, doprava, nahoru',
-    hintKeys: '← → nebo A D – uhnout  ·  mezerník nebo ↑ – skok  ·  P – pauza',
+    hintTouch: 'Tlačítka ◀ ▶: uhnout  ·  červené tlačítko: skok  ·  nebo švihněte prstem doleva, doprava, nahoru',
+    hintKeys: '← → nebo A D: uhnout  ·  mezerník nebo ↑: skok  ·  P: pauza',
     start: 'Běžet!',
 
     // countdown
@@ -67,7 +67,7 @@ const STRINGS = {
     historyTitle: 'Z historie',
     // TODO: fact-check
     history:
-      'Ve varně Světovaru stály měděné pánve na mladinu a rmutovací kádě. Plzeňský ležák se vařil dekokcí: část rmutu se odčerpala do pánve, povařila a vrátila zpět – tradičně třikrát. Pára pro ohřev proudila potrubím z kotelny a hlídal ji manometr.',
+      'Ve varně Světovaru stály měděné pánve na mladinu a rmutovací kádě. Plzeňský ležák se vařil dekokcí: část rmutu se odčerpala do pánve, povařila a vrátila zpět, tradičně třikrát. Pára pro ohřev proudila potrubím z kotelny a hlídal ji manometr.',
     failTitle: 'Překypělo to!',
     failLine: 'Kotel překypěl dřív, než jste doběhli k ventilu',
     tipFalls: 'Díru přeskočte, nebo uhněte do vedlejšího pruhu. Každý pád vás vrátí zpátky a stojí čas.',

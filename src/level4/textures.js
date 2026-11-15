@@ -494,9 +494,9 @@ function drawDecals4() {
     g.fillStyle = '#5a4128'; g.fillRect(512, 512, 512, 256);
     g.fillStyle = '#23282a'; g.fillRect(526, 526, 484, 228);
     g.fillStyle = 'rgba(236,232,220,0.9)'; g.textAlign = 'left';
-    g.font = 'italic bold 34px Georgia, serif'; g.fillText('Var č. 47 — 1926', 548, 562);
+    g.font = 'italic bold 34px Georgia, serif'; g.fillText('Var č. 47, 1926', 548, 562);
     g.font = 'italic 26px Georgia, serif';
-    g.fillText('Rmut   62° – 68°', 552, 606); g.fillText('Sladina   72° – 78°', 552, 642);
+    g.fillText('Rmut   62° až 68°', 552, 606); g.fillText('Sladina   72° až 78°', 552, 642);
     g.fillText('Chmelovar   100°', 552, 678); g.fillText('Chmel žatecký  3×', 552, 714);
     g.textAlign = 'center';
   }

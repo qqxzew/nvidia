@@ -187,3 +187,37 @@
   .tt-view.on, .plz-title.intro .tt-col, .plz-title.intro .tt-flags, .plz-title.intro .tt-bar { animation: none; }
   .mp-b { transition: none; }
 }
+
+/* ---------- About: the team ---------- */
+.plz-title.about .tt-col { width: min(760px, calc(100vw - 2 * var(--gut))); max-width: calc(100vw - 2 * var(--gut)); }
+/* the "made at" line: set like a printed stamp line, between two red rules */
+.tt-made { margin: 4px 0 6px; padding: 7px 0; border-top: 2px solid var(--red); border-bottom: 2px solid var(--red);
+  font: 850 15px/1.25 var(--grot); font-stretch: 108%; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); text-align: center; }
+.tt-team-head { margin-top: 10px; }
+.tt-group { display: block; width: min(460px, 78%); height: auto; margin: 10px auto 0; -webkit-user-drag: none; }
+.tt-team { list-style: none; margin: 0 0 4px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.tt-member { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+.tt-member img { width: 100%; aspect-ratio: 1 / 1.08; object-fit: cover; object-position: 50% 34%; border-radius: 10px;
+  background: #2a2220; box-shadow: 0 2px 0 var(--ink-3); -webkit-user-drag: none; }
+.tt-member b { margin-top: 8px; font: 800 14px/1.15 var(--grot); font-stretch: 106%; text-transform: uppercase; letter-spacing: .02em; }
+.tt-member .role { margin-top: 3px; font: 600 12px/1.25 var(--grot); font-stretch: 100%; color: var(--ink-2); }
+.tt-member .links { margin-top: 5px; display: flex; flex-direction: column; gap: 2px; font: 700 12px/1.2 var(--grot); }
+.tt-member .links a { color: var(--red); text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.tt-member .links a:hover { color: var(--red-dk); }
+.tt-member .links a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+@media (max-width: 560px) { .tt-team { grid-template-columns: repeat(2, 1fr); } }
+/* low landscape screens (phones): narrower card (clear of the volume bar bottom-right), flatter photos, tighter text */
+@media (max-height: 520px) {
+  .plz-title.about .tt-col { width: min(560px, calc(100vw - 2 * var(--gut))); padding: 10px 16px 8px; }
+  .plz-title.about .tt-head { margin-bottom: 6px; }
+  .plz-title.about .tt-text { font-size: 13px; line-height: 1.35; margin-bottom: 4px; }
+  .plz-title.about .tt-made { font-size: 12px; padding: 4px 0; margin: 2px 0 4px; border-width: 1.5px; }
+  .tt-team-head { margin-top: 4px; }
+  .tt-group { display: none; }
+  .tt-team { gap: 8px; margin-bottom: 0; }
+  .tt-member img { aspect-ratio: 1 / .62; border-radius: 8px; }
+  .tt-member b { font-size: 11px; margin-top: 4px; letter-spacing: 0; }
+  .tt-member .role { font-size: 10px; margin-top: 2px; }
+  .tt-member .links { font-size: 10px; margin-top: 3px; gap: 1px; }
+  .plz-title.about .tt-back { margin-top: 2px; }
+}

@@ -164,9 +164,9 @@ export function createUI4(ctx) {
           <div class="goal display">${t('goal')}</div>
           <p class="mission">${t('mission')}</p>
           <ul class="hz">
-            <li><span class="hz-i">${I4.steam}${I4.drip}</span><span><b>${t('hz_dodge')}</b> – ${t('hz_dodgeDo')}</span></li>
-            <li><span class="hz-i">${I4.hole}${I4.pipe}</span><span><b>${t('hz_jump')}</b> – ${t('hz_jumpDo')}</span></li>
-            <li><span class="hz-i">${I4.sack}</span><span><b>${t('hz_sack')}</b> – ${t('hz_sackDo')}</span></li>
+            <li><span class="hz-i">${I4.steam}${I4.drip}</span><span><b>${t('hz_dodge')}</b>: ${t('hz_dodgeDo')}</span></li>
+            <li><span class="hz-i">${I4.hole}${I4.pipe}</span><span><b>${t('hz_jump')}</b>: ${t('hz_jumpDo')}</span></li>
+            <li><span class="hz-i">${I4.sack}</span><span><b>${t('hz_sack')}</b>: ${t('hz_sackDo')}</span></li>
           </ul>
         </div>
         <p class="hint">${hasTouch ? touchHint : keyHint}</p>

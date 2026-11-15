@@ -253,7 +253,7 @@ function drawDecals(stations) {
     g.fillStyle = '#5a4128'; g.fillRect(x, y, 512, 256);
     g.fillStyle = '#23282a'; g.fillRect(x + 14, y + 14, 484, 228);
     g.fillStyle = 'rgba(236,232,220,0.9)'; g.textAlign = 'left';
-    g.font = 'italic bold 34px Georgia, serif'; g.fillText('Expedice — Plzeň', x + 34, y + 50);
+    g.font = 'italic bold 34px Georgia, serif'; g.fillText('Expedice, Plzeň', x + 34, y + 50);
     g.font = 'italic 26px Georgia, serif';
     g.fillText('Hostinec U Salzmannů', x + 38, y + 98);
     g.fillText('Měšťanská beseda', x + 38, y + 134);
