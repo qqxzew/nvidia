@@ -19,6 +19,9 @@ const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" wid
 const STAR = '<svg viewBox="0 0 48 46" aria-hidden="true"><path d="M24 3l5.8 13.3 14.4 1.3-10.9 9.5 3.2 14.1L24 33.8 11.5 41.2l3.2-14.1L3.8 17.6l14.4-1.3z"/></svg>';
 
 // The team (photos: public/team/*.png, transparent rounded corners). `links` are shown under the role.
+// Bundled through Vite (hashed files in dist/assets) so they never depend on public/ file permissions of the host.
+const PHOTOS = import.meta.glob('../assets/team/*.png', { eager: true, query: '?url', import: 'default' });
+const photoUrl = (f) => PHOTOS['../assets/team/' + f];
 const TEAM = [
   { name: 'Tomáš Krůta', photo: 'tomas-kruta.png', role: 'teamRole1', links: [{ label: 'tomaskruta.dev', url: 'https://tomaskruta.dev' }] },
   { name: 'Andrii Fedorov', photo: 'andrii-fedorov.png', role: 'teamRole2', links: [{ label: 'LinkedIn', url: 'https://www.linkedin.com/in/fedorov-andrii' }] },
@@ -29,7 +32,7 @@ const TEAM = [
   ] },
 ];
 const memberHtml = (m) => `<li class="tt-member">
-  <img src="${import.meta.env.BASE_URL}team/${m.photo}" alt="${m.name}" loading="lazy" decoding="async" draggable="false">
+  <img src="${photoUrl(m.photo)}" alt="${m.name}" loading="lazy" decoding="async" draggable="false">
   <b>${m.name}</b><span class="role">${t(m.role)}</span>
   ${m.links.length ? `<span class="links">${m.links.map((l) => `<a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>`).join('')}</span>` : ''}
 </li>`;
@@ -75,7 +78,7 @@ export function createTitle(ctx) {
           <p class="tt-made">${t('aboutMeta')}</p>
           <div class="tt-head tt-team-head">${t('teamTitle')}</div>
           <ul class="tt-team">${TEAM.map(memberHtml).join('')}</ul>
-          <img class="tt-group" src="${import.meta.env.BASE_URL}team/group.png" alt="" draggable="false">
+          <img class="tt-group" src="${photoUrl('group.png')}" alt="" draggable="false">
         </div>
         <button class="tt-back" type="button">${t('back')}</button>
       </div>
